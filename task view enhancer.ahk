@@ -740,7 +740,7 @@ Gui, settings2:new
 Gui, Add, GroupBox, x2 y67 w470 h68 
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
-Gui, Add, Text, x12 y49 w90 h20 , Remap Task View:
+Gui, Add, Text, x12 y49 w150 h20 , Remap Task View:
 Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
 Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
 Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
