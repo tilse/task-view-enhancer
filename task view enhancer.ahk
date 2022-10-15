@@ -8,16 +8,16 @@ Process, close, demo.exe
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
 Menu, Tray, Default, Settings
-Try Menu, Tray, Icon, %A_ScriptDir%\icons\winmover.ico
+Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
 
 ;----------------------------------CONFIG------------------------------------
 IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 1
-IniRead, taskHK, taskViewEnhancerSettings.ini, settings, taskHK, LWin
+IniRead, taskHK_, taskViewEnhancerSettings.ini, settings, taskHK, ~LWin
 IniRead, moveHKOn, taskViewEnhancerSettings.ini, settings, moveHKOn, 1
-IniRead, moveHKmodifier, taskViewEnhancerSettings.ini, settings, moveHKmodifier, LWin
+IniRead, moveHKmodifier_, taskViewEnhancerSettings.ini, settings, moveHKmodifier, LWin
 IniRead, moveHK, taskViewEnhancerSettings.ini, settings, moveHK, LButton
 IniRead, resizeHKOn, taskViewEnhancerSettings.ini, settings, resizeHKOn, 1
-IniRead, resizeHKmodifier, taskViewEnhancerSettings.ini, settings, resizeHKmodifier, LWin
+IniRead, resizeHKmodifier_, taskViewEnhancerSettings.ini, settings, resizeHKmodifier, LWin
 IniRead, resizeHK, taskViewEnhancerSettings.ini, settings, resizeHK, RButton
 
 IniRead, activationDistance, taskViewEnhancerSettings.ini, settings, activationDistance, 10
@@ -31,12 +31,8 @@ Try
 {
 	if(taskHKOn){
 		; !!! this remaps the windows key
-		if(taskHK="LWin"||taskHK="RWin"){
-			Hotkey, ~%taskHK%, showTask ; the ~ is at the front to keep other windows key combos working
-		}
-		else {
-			Hotkey, %taskHK%, showTask
-		}
+		Hotkey, %taskHK_%, showTask
+		taskHK := getKeyFromHotkey(taskHK_)
 	}
 
 	; !!! this determines how often this script checks if task view is open to enable searching whenever you type (in milliseconds)
@@ -46,12 +42,14 @@ Try
 
 	if(moveHKOn){
 		; !!! this determines the hotkey to move windows.
-		Hotkey, %moveHKmodifier% & %moveHK%, moveWindow
+		Hotkey, %moveHKmodifier_% & %moveHK%, moveWindow
+		moveHKmodifier := getKeyFromHotkey(moveHKmodifier_)
 	}
 
 	if(resizeHKOn){
 		; !!! for resizing windows
-		Hotkey, %resizeHKmodifier% & %resizeHK%, resizeWindow
+		Hotkey, %resizeHKmodifier_% & %resizeHK%, resizeWindow
+		resizeHKmodifier := getKeyFromHotkey(resizeHKmodifier_)
 	}
 }
 Catch, e
@@ -140,6 +138,10 @@ if(keepOpen){
 
 nothing:
 return
+
+getKeyFromHotkey(hotkey){
+	return RegExReplace(StrSplit(hotkey, " ")[1],"[~!^$+]","")
+}
 
 showTask:
 	if (GetKeyState(taskHK, "P") = 0){
@@ -236,7 +238,7 @@ taskInput:
 
 		if (keyName = taskHK) { 
 			keywait, %taskHK%
-			if (A_PriorKey == taskHK && Mouse_Flag = 0) {
+			if (A_PriorKey = taskHK && Mouse_Flag = 0 && (taskHK = "LWin" || taskHK = "RWin")) {
 				WinWaitActive %search%,,1
 				send {Esc}
 			}
@@ -265,6 +267,7 @@ mousedown:
 return
 
 moveWindow:
+	moveHK := A_PriorKey
 	Hotkey, *$Shift, on
 	mouse_Flag = 1
 	touchOrPen := GetKeyState(moveHK, "P") = 0
@@ -516,6 +519,7 @@ moveWindow:
 return
 
 resizeWindow:
+	resizeHK := A_PriorKey
 	Hotkey, *$Shift, on
 	mouse_Flag = 1
 	touchOrPen := GetKeyState(resizeHK, "P") = 0
@@ -738,10 +742,10 @@ Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
 Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
 Gui, Add, Text, x12 y169 w150 h20 , Resize windows (main key):
 
-Gui, Add, Edit, x192 y49 w110 h20 vTHK r1, %taskHK%
-Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier%
+Gui, Add, Edit, x192 y49 w110 h20 vTHK r1, %taskHK_%
+Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier_%
 Gui, Add, Edit, x192 y109 w110 h20 vMHK r1, %moveHK%
-Gui, Add, Edit, x192 y139 w110 h20 vRHKM r1, %resizeHKmodifier%
+Gui, Add, Edit, x192 y139 w110 h20 vRHKM r1, %resizeHKmodifier_%
 Gui, Add, Edit, x192 y169 w110 h20 vRHK r1, %resizeHK%
 
 Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
@@ -759,7 +763,7 @@ Gui, Add, GroupBox, x2 y209 w470 h150 , Other Settings
 
 Gui, Add, Text, x12 y239 w170 h20 , Cursor Distance for Activation (px):
 Gui, Add, Text, x12 y269 w170 h20 , Snapping:
-Gui, Add, Text, x12 y299 w170 h20 , Snap border width:
+Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
 Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
 
 Gui, Add, Slider, x192 y239 w160 h30 vdist ToolTip, %activationDistance%
@@ -818,12 +822,12 @@ IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
 
 SetHKs:
     GuiControlGet, taskHKOn,, enableTHK
-    GuiControlGet, taskHK,, THK
+    GuiControlGet, taskHK_,, THK
     GuiControlGet, moveHKOn,, enableMHK
-    GuiControlGet, moveHKmodifier,, MHKM
+    GuiControlGet, moveHKmodifier_,, MHKM
     GuiControlGet, moveHK,, MHK
     GuiControlGet, resizeHKOn,, enableRHK
-    GuiControlGet, resizeHKmodifier,, RHKM
+    GuiControlGet, resizeHKmodifier_,, RHKM
     GuiControlGet, resizeHK,, RHK
 
 	GuiControlGet, activationDistance,, dist
@@ -843,12 +847,12 @@ SetHKs:
 	}
 
 	IniWrite, %taskHKOn%, taskViewEnhancerSettings.ini, settings, taskHKOn
-	IniWrite, %taskHK%, taskViewEnhancerSettings.ini, settings, taskHK
+	IniWrite, %taskHK_%, taskViewEnhancerSettings.ini, settings, taskHK
 	IniWrite, %moveHKOn%, taskViewEnhancerSettings.ini, settings, moveHKOn
-	IniWrite, %moveHKmodifier%, taskViewEnhancerSettings.ini, settings, moveHKmodifier
+	IniWrite, %moveHKmodifier_%, taskViewEnhancerSettings.ini, settings, moveHKmodifier
 	IniWrite, %moveHK%, taskViewEnhancerSettings.ini, settings, moveHK
 	IniWrite, %resizeHKOn%, taskViewEnhancerSettings.ini, settings, resizeHKOn
-	IniWrite, %resizeHKmodifier%, taskViewEnhancerSettings.ini, settings, resizeHKmodifier
+	IniWrite, %resizeHKmodifier_%, taskViewEnhancerSettings.ini, settings, resizeHKmodifier
 	IniWrite, %resizeHK%, taskViewEnhancerSettings.ini, settings, resizeHK
 
 	IniWrite, %activationDistance%, taskViewEnhancerSettings.ini, settings, activationDistance
