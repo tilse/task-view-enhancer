@@ -267,7 +267,6 @@ mousedown:
 return
 
 moveWindow:
-	moveHK := A_PriorKey
 	Hotkey, *$Shift, on
 	mouse_Flag = 1
 	touchOrPen := GetKeyState(moveHK, "P") = 0
@@ -519,7 +518,6 @@ moveWindow:
 return
 
 resizeWindow:
-	resizeHK := A_PriorKey
 	Hotkey, *$Shift, on
 	mouse_Flag = 1
 	touchOrPen := GetKeyState(resizeHK, "P") = 0
@@ -734,6 +732,7 @@ IDC_HELP := 32651
 settings:
 Gui, settings2:new
 
+Gui, Add, GroupBox, x2 y67 w470 h68 
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
 Gui, Add, Text, x12 y49 w90 h20 , Call Task View:
@@ -766,9 +765,11 @@ Gui, Add, Text, x12 y269 w170 h20 , Snapping:
 Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
 Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
 
-Gui, Add, Slider, x192 y239 w160 h30 vdist ToolTip, %activationDistance%
+Gui, Add, Edit, x365 y234 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
+Gui, Add, Slider, x184 y234 w176 h30 vdist ToolTip gUpdateDistBuddy, %activationDistance%
 Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
-Gui, Add, Slider, x192 y299 w160 h28 vborder ToolTip, %borderwidth%
+Gui, Add, Edit, x365 y294 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
+Gui, Add, Slider, x184 y294 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
@@ -779,6 +780,10 @@ Gui, Add, Button, x388 y369 w80 h30 gresetSettings, Reset
 
 Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
 Gui, Add, Link, x12 y386 w180 h20, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">Autohotkey Syntax for Hotkeys</a>
+
+gui Font, s20
+Gui, Add, Text, x500 y205 w170 h80 , Hi :3
+Gui, Add, Text, x100 y430 w300 h80 , Yahaha, you found me!
 ; Generated using SmartGUI Creator 4.0
 
 middleX:=A_ScreenWidth/2-240
@@ -817,6 +822,26 @@ kget(source, target){
     GuiControl,, %source% , Input
 }
 
+UpdateDistBuddy:
+	GuiControlGet, temp,, dist
+	GuiControl,, distBuddy , %temp%
+return
+
+UpdateDistSlider:
+	GuiControlGet, temp,, distBuddy
+	GuiControl,, dist , %temp%
+return
+
+UpdateborderBuddy:
+	GuiControlGet, temp,, border
+	GuiControl,, borderBuddy , %temp%
+return
+
+UpdateBorderSlider:
+	GuiControlGet, temp,, borderBuddy
+	GuiControl,, border , %temp%
+return
+
 apply:
 IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
 
@@ -830,19 +855,21 @@ SetHKs:
     GuiControlGet, resizeHKmodifier_,, RHKM
     GuiControlGet, resizeHK,, RHK
 
-	GuiControlGet, activationDistance,, dist
+	GuiControlGet, activationDistance,, distBuddy
     GuiControlGet, snapping,, enableSnap
-    GuiControlGet, borderwidth,, border
+    GuiControlGet, borderwidth,, borderBuddy
     GuiControlGet, bottomBehavior,, botedge
 
-	if(moveHKmodifier=""||resizeHKmodifier=""){
-		e = Hotkey modifiers need to be set.
-		msgbox, % "Error: " e "`nDo a reset if you are unsure."
+	if(moveHKmodifier_=""||resizeHKmodifier_=""){
+		throwCustom("Hotkey modifiers need to be set.")
 		return
 	}
 	if(taskHK=""||resizeHK=""||moveHK=""){
-		e = Empty hotkeys detected.
-		msgbox, % "Error: " e "`nDo a reset if you are unsure."
+		throwCustom("Empty hotkeys detected.")
+		return
+	}
+	if(moveHK != getKeyFromHotkey(moveHK) || resizeHK != getKeyFromHotkey(resizeHK)){
+		throwCustom("Please only specify a single key as the main key.")
 		return
 	}
 
@@ -862,6 +889,11 @@ SetHKs:
 
 	Reload
 Return
+
+throwCustom(e){
+	msgbox, % "Error: " e "`nDo a reset if you are unsure or close this window to discard changes."
+	return
+}
 
 AutostartChanged:
 	SplitPath, A_Scriptname, , , , OutNameNoExt 
