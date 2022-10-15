@@ -41,7 +41,7 @@ task view).
 Once you're done with that, continue reading...
 
 
-# Install AutoHotkey with UI Access:
+<h3>Install AutoHotkey with UI Access:</h3>
 
 Install to: "C:\Program Files\AutoHotkey" (default)
 (or change the "run script+UIA.bat" file to run with AutoHotkeyU64_UIA.exe
@@ -51,7 +51,7 @@ In the installer options select:
 "Add 'Run with UI Access' to context menus"
 
 
-# Run the script
+<h3>Run the script</h3>
 
 You can put this folder (unzipped) in any location where you wanna keep it and run "run script+UIA.bat".
 
@@ -66,7 +66,7 @@ to disable the MS account login prompt in task view you get when you're using a
 local account on your machine, use the registry files in this folder.
 
 
-# Autostart
+<h3>Autostart</h3>
 
 Tell task scheduler to run the .bat file at login for the fastest autostart (optional)
 (faster than the autostart folder).
