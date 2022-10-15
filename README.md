@@ -65,11 +65,11 @@ You can put this folder (unzipped) in any location where you wanna keep it and r
 
 ## CUSTOMIZE
 
-to adjust some other settings after the initial startup, click the task tray icon.
+To adjust some other settings after the initial startup, click the task tray icon.
 
 <img src="https://user-images.githubusercontent.com/59397795/195991415-42479301-31f9-4c64-9946-011c490ec470.png" height="400">
 
-to disable the MS account login prompt in task view you get when you're using a 
+To disable the MS account login prompt in task view you get when you're using a 
 local account on your machine, use the registry files in this folder.
 
 
