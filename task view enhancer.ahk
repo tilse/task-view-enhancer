@@ -358,16 +358,16 @@ moveWindow:
 					break
 				}
 				if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
-					if (abs(px2 - (mon%A_Index%Left + bwh)) <= bwh){
+					if (px2 - borderwidth <= mon%A_Index%Left){
 						snap := "L"
 					}
-					else if (abs(px2 - (mon%A_Index%Right - bwh)) <= bwh){
+					else if (px2 + borderwidth >= mon%A_Index%Right){
 						snap := "R"
 					}
-					if(abs(py2 - (mon%A_Index%Top + bwh)) <= bwh){
+					if(py2 - borderwidth <= mon%A_Index%Top){
 						snap := snap "U"
 					}
-					else if(abs(py2 - (mon%A_Index%Bottom - bwh)) <= bwh){
+					else if(py2 + borderwidth >= mon%A_Index%Bottom){
 						snap := snap "D"
 					}
 				}
@@ -548,42 +548,8 @@ resizeWindow:
 		Sleep, %loopsleep%
 	}
 	
-	;get monitor bounds automatically
-	SysGet, MonitorCount, MonitorCount
-	Loop, %MonitorCount%
-	{
-		SysGet, mon%A_Index%work, MonitorWorkArea, %A_Index%
-		SysGet, mon%A_Index%, Monitor, %A_Index%
-	}
-	MonitorCount++
-	mon%MonitorCount%Left = ERROR
-
-	;resize
-	Loop 20{
-		WinGetActiveTitle, moveWin
-		if(moveWin != ""){
-			break
-		}
-		sleep %loopsleep%
-	}
-	
 	WinGet, winMax1, MinMax, A
 	WinGetPos, winX1, winY1, winWidth1, winHeight1, A
-
-	if(winMax1){
-		Loop{
-			if(mon%A_Index%Left = "ERROR"){
-				break
-			}
-			if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
-				winWidth1 := mon%A_Index%workRight-mon%A_Index%workLeft
-				winHeight1 := mon%A_Index%workBottom-mon%A_Index%workTop
-			}
-		}
-		winX1 := winX1+8
-		winY1 := winY1+10
-		WinRestore, %moveWin%
-	}
 
 	RD := 0, RU := 0, LU := 0, LD := 0
 	if(px2 > winX1+winWidth1/2 && py2 > winY1+winHeight1/2){
@@ -603,6 +569,114 @@ resizeWindow:
 		LD = 1
 	}
 	curChange(tempcur)
+
+	;get monitor bounds automatically
+	SysGet, MonitorCount, MonitorCount
+	Loop, %MonitorCount%
+	{
+		SysGet, mon%A_Index%work, MonitorWorkArea, %A_Index%
+		SysGet, mon%A_Index%, Monitor, %A_Index%
+	}
+	MonitorCount++
+	mon%MonitorCount%Left = ERROR
+
+	;check if the opposite edge is in snapping distance 
+	;for automatic fullscreening when the window has reached the size of the work area
+	canMaximize = 0
+	if(RD=1){
+		sX := winX1 +bwh
+		sY := winY1 +bwh
+		snap:=""
+		Loop{
+			if(mon%A_Index%Left = "ERROR"){
+				break
+			}
+			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
+				if (sX - borderwidth <= mon%A_Index%workLeft && sY - borderwidth <= mon%A_Index%workTop){
+					canMaximize = 1
+				}
+			}
+		}
+	}
+	else if(RU=1){
+		sX := winX1 +bwh
+		sY := winY1 + winHeight1 -bwh
+		snap := ""
+		Loop{
+			if(mon%A_Index%Left = "ERROR"){
+				break
+			}
+			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
+				if (sX - borderwidth <= mon%A_Index%workLeft && sY + borderwidth >= mon%A_Index%workBottom){
+					canMaximize = 1
+				}
+			}
+		}
+	}
+	else if(LU=1){
+		sX := winX1 + winWidth1 -bwh
+		sY := winY1 + winHeight1 -bwh
+		snap := ""
+		Loop{
+			if(mon%A_Index%Left = "ERROR"){
+				break
+			}
+			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
+				if (sX + borderwidth >= mon%A_Index%workRight && sY + borderwidth >= mon%A_Index%workBottom){
+					canMaximize = 1
+				}
+			}
+		}
+	}
+	else{
+		sX := winX1  + winWidth1 -bwh
+		sY := winY1 +bwh
+		snap := ""
+		Loop{
+			if(mon%A_Index%Left = "ERROR"){
+				break
+			}
+			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
+				if (sX + borderwidth >= mon%A_Index%workRight && sY - borderwidth <= mon%A_Index%workTop){
+					canMaximize = 1
+				}
+			}
+		}
+	}
+
+	Loop, % MonitorCount-1
+	{
+		;offset monitor area for snap checks so it snaps from both sides of the edge
+		mon%A_Index%Left 	+= borderwidth*(RU+RD-LU-LD)
+		mon%A_Index%Right	+= borderwidth*(RU+RD-LU-LD)
+		mon%A_Index%Top		+= borderwidth*(RD+LD-RU-LU)
+		mon%A_Index%Bottom 	+= borderwidth*(RD+LD-RU-LU)
+	}
+
+	;resize
+	Loop 20{
+		WinGetActiveTitle, moveWin
+		if(moveWin != ""){
+			break
+		}
+		sleep %loopsleep%
+	}
+	
+	if(winMax1){
+		Loop{
+			if(mon%A_Index%Left = "ERROR"){
+				break
+			}
+			if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
+				winWidth1 := mon%A_Index%workRight-mon%A_Index%workLeft
+				winHeight1 := mon%A_Index%workBottom-mon%A_Index%workTop
+			}
+		}
+		winX1 += 8
+		winY1 += 10
+		WinRestore, %moveWin%
+		canMaximize = 1
+	}
 
 	Loop{
 		MouseGetPos, px2, py2
@@ -626,20 +700,20 @@ resizeWindow:
 				if(mon%A_Index%Left = "ERROR"){
 					break
 				}
-				if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom){ ;current monitor check
-					if (abs(sX - (mon%A_Index%workLeft + bwh)) <= bwh){
+				if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
+					if (sX - borderwidth <= mon%A_Index%workLeft){
 						snap := "L"
 						edgeX := mon%A_Index%workLeft
 					}
-					else if (abs(sX - (mon%A_Index%workRight - bwh)) <= bwh){
+					else if (sX + borderwidth >= mon%A_Index%workRight){
 						snap := "R"
 						edgeX := mon%A_Index%workRight
 					}
-					if(abs(sY - (mon%A_Index%workTop + bwh)) <= bwh){
+					if(sY - borderwidth <= mon%A_Index%workTop){
 						snap := snap "U"
 						edgeY := mon%A_Index%workTop
 					}
-					else if(abs(sY - (mon%A_Index%workBottom - bwh)) <= bwh){
+					else if(sY + borderwidth >= mon%A_Index%workBottom){
 						snap := snap "D"
 						edgeY := mon%A_Index%workBottom
 					}
@@ -673,6 +747,29 @@ resizeWindow:
 			break
 		}
 		sleep %loopsleep%
+	}
+	
+	if(canMaximize = 1){
+		switch snap
+		{
+		case "LD":
+			if(LD=1){
+				WinMaximize, %moveWin%
+			}
+		case "RD":
+			if(RD=1){
+				WinMaximize, %moveWin%
+			}
+		case "LU":
+			if(LU=1){
+				WinMaximize, %moveWin%
+			}
+		case "RU":
+			if(RU=1){
+				WinMaximize, %moveWin%
+			}
+		Default:
+		}
 	}
 	
 	curRevert()
