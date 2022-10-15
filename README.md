@@ -9,6 +9,8 @@
 
 ## FEATURES
 
+The goal of this script is to make the Windows key behave like the Super key in Linux.
+
 Left Windows Key -> task view
 
 Start searching by typing in task view
