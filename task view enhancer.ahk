@@ -768,7 +768,7 @@ Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
 
 Gui, Add, Slider, x192 y239 w160 h30 vdist ToolTip, %activationDistance%
 Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
-Gui, Add, Slider, x192 y299 w160 h30 vborder ToolTip, %borderwidth%
+Gui, Add, Slider, x192 y299 w160 h28 vborder ToolTip, %borderwidth%
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
