@@ -1,46 +1,64 @@
 #NoEnv 
 SendMode Input
-SetWorkingDir %A_ScriptDir%  
+SetWorkingDir %A_AppData%  
 #singleinstance force
 #MaxHotkeysPerInterval, 300
 Process, close, demo.exe
 
+Menu, Tray, add, Settings, settings
+Menu, Tray, Click, 1
+Menu, Tray, Default, Settings
+Try Menu, Tray, Icon, %A_ScriptDir%\icons\winmover.ico
+
 ;----------------------------------CONFIG------------------------------------
-; Ctrl+Alt+Shift+R to reload the script after changes to the code
+IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 1
+IniRead, taskHK, taskViewEnhancerSettings.ini, settings, taskHK, LWin
+IniRead, moveHKOn, taskViewEnhancerSettings.ini, settings, moveHKOn, 1
+IniRead, moveHKmodifier, taskViewEnhancerSettings.ini, settings, moveHKmodifier, LWin
+IniRead, moveHK, taskViewEnhancerSettings.ini, settings, moveHK, LButton
+IniRead, resizeHKOn, taskViewEnhancerSettings.ini, settings, resizeHKOn, 1
+IniRead, resizeHKmodifier, taskViewEnhancerSettings.ini, settings, resizeHKmodifier, LWin
+IniRead, resizeHK, taskViewEnhancerSettings.ini, settings, resizeHK, RButton
 
+IniRead, activationDistance, taskViewEnhancerSettings.ini, settings, activationDistance, 10
+IniRead, snapping, taskViewEnhancerSettings.ini, settings, snapping, 1
+IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
+IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, none
 
-; the following lines can be commented out (with semicolons) or edited to remove functions from this script
+IniRead, autostart, taskViewEnhancerSettings.ini, autostart, enabled, 0
 
-; !!! this remaps the windows key
-taskHK = LWin
-Hotkey, ~%taskHK%, showTask ; the ~ is at the front to keep other windows key combos working
+Try
+{
+	if(taskHKOn){
+		; !!! this remaps the windows key
+		if(taskHK="LWin"||taskHK="RWin"){
+			Hotkey, ~%taskHK%, showTask ; the ~ is at the front to keep other windows key combos working
+		}
+		else {
+			Hotkey, %taskHK%, showTask
+		}
+	}
 
-; !!! this determines how often this script checks if task view is open to enable searching whenever you type (in milliseconds)
-; don't worry about performance as this is only a single line of code each time
-; if you disable this timer, your first input after using the hotkey for task view above will still open search
-SetTimer, taskInput, 1000
+	; !!! this determines how often this script checks if task view is open to enable searching whenever you type (in milliseconds)
+	; don't worry about performance as this is only a single line of code each time
+	; if you disable this timer, your first input after using the hotkey for task view above will still open search
+	SetTimer, taskInput, 1000
 
-; !!! this determines the hotkey to move windows.
-moveHKmodifier = LWin
-moveHK = LButton
-Hotkey, %moveHKmodifier% & %moveHK%, moveWindow
+	if(moveHKOn){
+		; !!! this determines the hotkey to move windows.
+		Hotkey, %moveHKmodifier% & %moveHK%, moveWindow
+	}
 
-; !!! for resizing windows
-resizeHKmodifier = LWin
-resizeHK = RButton
-Hotkey, %resizeHKmodifier% & %resizeHK%, resizeWindow
-
-
-; for dragging/positioning windows with #LButton:
-activationDistance = 10 ; how far the mouse needs to be moved before activation in pixels
-
-;enable snapping
-snapping = 1
-borderwidth = 20 ; sensitivity for maximizing windows at the borders in pixels
-
-; whether to maximize a window if you drag it to the bottom of your screen
-; otherwise it will be minimized
-maxOnBottom = 1
+	if(resizeHKOn){
+		; !!! for resizing windows
+		Hotkey, %resizeHKmodifier% & %resizeHK%, resizeWindow
+	}
+}
+Catch, e
+{
+	msgbox, % "Error: " e "`nDo a reset if you are unsure."
+	goto settings
+}
 
 ; change these to a higher value if you get performance issues, for example: 2
 SetWinDelay, -1 ;faster winmove
@@ -55,8 +73,8 @@ bwh := borderwidth/2
 
 ; couldn't check these names bc the names are different based on system language
 ; will be retrieved automatically if ini file is empty or a timeout occurs
-IniRead, taskView, %A_Appdata%\taskViewEnhance.ini, windowNames, taskView
-IniRead, snapAssist, %A_Appdata%\taskViewEnhance.ini, windowNames, snapAssist
+IniRead, taskView, taskViewEnhancerSettings.ini, windowNames, taskView
+IniRead, snapAssist, taskViewEnhancerSettings.ini, windowNames, snapAssist
 search := "ahk_exe SearchApp.exe" ;should work for any language
 
 ; these are here to stop waiting for input when in task view
@@ -68,9 +86,7 @@ Hotkey, *$Shift, nothing, off
 getnames:
 if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	SetTimer, taskInput, off
-	msgbox,1,, % "Unknown names for task view and snap assist.`nThe script will get these names now..."
-	IfMsgBox, cancel
-		return
+	msgbox % "Unknown names for task view and snap assist.`nThe script will get these names now..."
 	WinGetActiveTitle, OutputVar
 	run %A_WinDir%`\explorer.exe shell`:`:`:{3080F90E-D7AD-11D9-BD98-0000947B0257} ;this is a slower alternative to "send #{tab}", but more reliable
 	WinWaitNotActive %Outputvar%,, 2
@@ -109,13 +125,18 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	WinClose, ahk_pid %note2%
 	WinClose, ahk_pid %note1%
 	send {esc}
-	IniWrite, %taskView%, %A_Appdata%\taskViewEnhance.ini, windowNames, taskView
-	IniWrite, %snapAssist%, %A_Appdata%\taskViewEnhance.ini, windowNames, snapAssist
+	IniWrite, %taskView%, taskViewEnhancerSettings.ini, windowNames, taskView
+	IniWrite, %snapAssist%, taskViewEnhancerSettings.ini, windowNames, snapAssist
 	msgbox % "Done.`nDetected task view as """ taskView """`nand snap assist as """ snapAssist """."
 	SetTimer, taskInput, on
 }
 
 mouse_Flag = 0
+
+IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
+if(keepOpen){
+	goto settings
+}
 
 nothing:
 return
@@ -124,20 +145,19 @@ showTask:
 	if (GetKeyState(taskHK, "P") = 0){
 		return
 	}
+	if (WinActive(taskView) || WinActive(search)){
+		closeintent = 1
+	}
+	else{
+		closeintent = 0
+	}
+
 	SetTimer, taskInput, off
 	if(!(moveHKmodifier = taskHK) || !(resizeHKmodifier = taskHK)){
 		mouse_Flag = 0
 	}
+	
 	;prevent repeats
-	if (WinActive(taskView)){
-		closeAfter = 1
-	}
-	else if(WinActive(search)){
-		SetTimer, taskInput, on
-		return
-	}
-	else closeAfter = 0
-
 	keywait, %taskHK%
 	
 	;cancel if a different key got pressed while win was held down
@@ -150,14 +170,22 @@ showTask:
 	if(taskHK = "LWin" || taskHK = "RWin"){
 		WinWaitActive %search%,,1
 	}
-	
-	if (closeAfter){
-		send {Esc}
-		Mouse_Flag = 0
+
+	if(closeintent){
+		if(taskHK="LWin" || taskHK="RWin"){
+			if(WinActive(search)){
+				sleep 1
+				send {esc}
+			}
+		}
+		else{
+			send {Esc}
+		}
+		mouse_Flag = 0
 		SetTimer, taskInput, on
 		return
 	}
-	
+
 	Mouse_Flag = 0
     Hotkey, ~*LButton, on
     Hotkey, ~*RButton, on
@@ -174,8 +202,10 @@ showTask:
 			Hotkey, ~*LButton, off
 			Hotkey, ~*RButton, off
 			Hotkey, ~*MButton, off
-			taskView = ERROR
+			SetTimer, taskInput, on
+			taskView := "ERROR"
 			goto getnames
+			return
 		}
 	}
 	fromhk =1
@@ -240,7 +270,6 @@ moveWindow:
 	touchOrPen := GetKeyState(moveHK, "P") = 0
 	CoordMode, mouse, screen
 	MouseGetPos, px1, py1, window
-	movedFromTaskView = 0
 	resetWinPos = 0
 	;decide loop
 	Loop{
@@ -374,12 +403,13 @@ moveWindow:
 					}
 					WinMaximize, %moveWin%
 				case "D":
-					WinRestore, %moveWin%
-					WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 -5
-					if(maxOnBottom){
+					if(bottomBehavior = "maximize"){
+						WinRestore, %moveWin%
+						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 -5
 						WinMaximize, %moveWin%
 					}
-					else{
+					else if(bottomBehavior = "minimize"){
+						WinRestore, %moveWin%
 						WinMove, A, , winX1, winY1, winWidth1, winHeight1
 						if(winMax1 = 1){
 							WinMaximize, %moveWin%
@@ -697,4 +727,163 @@ IDC_HELP := 32651
 
 ;---------------------------------TASK VIEW + WINDOW DRAG END---------------------------------
 
-~*+!^R::Reload
+settings:
+Gui, settings2:new
+
+Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
+
+Gui, Add, Text, x12 y49 w90 h20 , Call Task View:
+Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
+Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
+Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
+Gui, Add, Text, x12 y169 w150 h20 , Resize windows (main key):
+
+Gui, Add, Edit, x192 y49 w110 h20 vTHK r1, %taskHK%
+Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier%
+Gui, Add, Edit, x192 y109 w110 h20 vMHK r1, %moveHK%
+Gui, Add, Edit, x192 y139 w110 h20 vRHKM r1, %resizeHKmodifier%
+Gui, Add, Edit, x192 y169 w110 h20 vRHK r1, %resizeHK%
+
+Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
+Gui, Add, Button, x312 y79 w50 h20 vbut2 gkget2, Input
+Gui, Add, Button, x312 y109 w50 h20 vbut3 gkget3, Input
+Gui, Add, Button, x312 y139 w50 h20 vbut4 gkget4, Input
+Gui, Add, Button, x312 y169 w50 h20 vbut5 gkget5, Input
+
+Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
+Gui, Add, CheckBox, x372 y89 w90 h30 venableMHK Checked%moveHKOn%, Enabled
+Gui, Add, CheckBox, x372 y149 w90 h30 venableRHK Checked%resizeHKOn%, Enabled
+
+
+Gui, Add, GroupBox, x2 y209 w470 h150 , Other Settings
+
+Gui, Add, Text, x12 y239 w170 h20 , Cursor Distance for Activation (px):
+Gui, Add, Text, x12 y269 w170 h20 , Snapping:
+Gui, Add, Text, x12 y299 w170 h20 , Snap border width:
+Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
+
+Gui, Add, Slider, x192 y239 w160 h30 vdist ToolTip, %activationDistance%
+Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
+Gui, Add, Slider, x192 y299 w160 h30 vborder ToolTip, %borderwidth%
+ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
+Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
+
+
+Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
+Gui, Add, Button, x303 y369 w80 h30 gapply , Apply
+Gui, Add, Button, x388 y369 w80 h30 gresetSettings, Reset
+
+Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
+Gui, Add, Link, x12 y386 w180 h20, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">Autohotkey Syntax for Hotkeys</a>
+; Generated using SmartGUI Creator 4.0
+
+middleX:=A_ScreenWidth/2-240
+middleY:=A_ScreenHeight/2-220
+Gui, Show, x%middleX% y%middleY% h410 w480
+
+IniWrite, 0, taskViewEnhancerSettings.ini, temp, keepOpen
+Return
+
+kget1:
+    kget("but1", "THK")
+return
+kget2:
+    kget("but2", "MHKM")
+return
+kget3:
+    kget("but3", "MHK")
+return
+kget4:
+    kget("but4", "RHKM")
+return
+kget5:
+    kget("but5", "RHK")
+return
+
+kget(source, target){
+	GuiControl,, %source% , Waiting
+    KeyWait, LButton
+    loop 200{
+        if(A_PriorKey != "LButton" || GetKeyState("LButton")){
+            GuiControl,,%target%,% A_PriorKey
+            break
+        }
+        sleep 30
+    }
+    GuiControl,, %source% , Input
+}
+
+apply:
+IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
+
+SetHKs:
+    GuiControlGet, taskHKOn,, enableTHK
+    GuiControlGet, taskHK,, THK
+    GuiControlGet, moveHKOn,, enableMHK
+    GuiControlGet, moveHKmodifier,, MHKM
+    GuiControlGet, moveHK,, MHK
+    GuiControlGet, resizeHKOn,, enableRHK
+    GuiControlGet, resizeHKmodifier,, RHKM
+    GuiControlGet, resizeHK,, RHK
+
+	GuiControlGet, activationDistance,, dist
+    GuiControlGet, snapping,, enableSnap
+    GuiControlGet, borderwidth,, border
+    GuiControlGet, bottomBehavior,, botedge
+
+	if(moveHKmodifier=""||resizeHKmodifier=""){
+		e = Hotkey modifiers need to be set.
+		msgbox, % "Error: " e "`nDo a reset if you are unsure."
+		return
+	}
+	if(taskHK=""||resizeHK=""||moveHK=""){
+		e = Empty hotkeys detected.
+		msgbox, % "Error: " e "`nDo a reset if you are unsure."
+		return
+	}
+
+	IniWrite, %taskHKOn%, taskViewEnhancerSettings.ini, settings, taskHKOn
+	IniWrite, %taskHK%, taskViewEnhancerSettings.ini, settings, taskHK
+	IniWrite, %moveHKOn%, taskViewEnhancerSettings.ini, settings, moveHKOn
+	IniWrite, %moveHKmodifier%, taskViewEnhancerSettings.ini, settings, moveHKmodifier
+	IniWrite, %moveHK%, taskViewEnhancerSettings.ini, settings, moveHK
+	IniWrite, %resizeHKOn%, taskViewEnhancerSettings.ini, settings, resizeHKOn
+	IniWrite, %resizeHKmodifier%, taskViewEnhancerSettings.ini, settings, resizeHKmodifier
+	IniWrite, %resizeHK%, taskViewEnhancerSettings.ini, settings, resizeHK
+
+	IniWrite, %activationDistance%, taskViewEnhancerSettings.ini, settings, activationDistance
+	IniWrite, %snapping%, taskViewEnhancerSettings.ini, settings, snapping
+	IniWrite, %borderwidth%, taskViewEnhancerSettings.ini, settings, borderwidth
+	IniWrite, %bottomBehavior%, taskViewEnhancerSettings.ini, settings, bottomBehavior
+
+	Reload
+Return
+
+AutostartChanged:
+	SplitPath, A_Scriptname, , , , OutNameNoExt 
+	LinkFile=%A_Startup%\%OutNameNoExt%.lnk
+	If (fileexist(LinkFile)){
+		FileDelete, %LinkFile%
+		autostart = 0
+	}
+	else{
+		FileCreateShortcut, %A_ScriptDir%\run script+UIA.bat, %LinkFile% 
+		autostart = 1
+	}
+
+	IniWrite, %autostart%, taskViewEnhancerSettings.ini, autostart, enabled
+return
+
+resetSettings:
+	msgbox, 4,, Are you sure you want to reset your settings to default?
+	IfMsgBox, Yes
+	{
+		IniDelete, taskViewEnhancerSettings.ini, settings
+		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
+		Reload
+	}
+return
+
+GuiClose:
+gui destroy
+return
