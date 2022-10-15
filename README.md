@@ -22,6 +22,7 @@ Windows + left click -> drag windows <br>
 Windows + right click -> resize windows<br>
 ->picks the closest window corner to resize from<br>
 ->snaps to your work area (doesn't include your task bar)
+->maximizes the window when the window snapped in all corners
 
 Holding shift limits movement to one axis (press shift **after** starting a function)
 
