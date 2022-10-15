@@ -15,12 +15,12 @@ Left Windows Key -> task view
 
 Start searching by typing in task view
 
-Windows + left click -> drag windows 
-->window snapping works too
+Windows + left click -> drag windows <br>
+->window snapping works too<br>
 ->works in task view and from snap assist too
 
-Windows + right click -> resize windows
-->picks the closest window corner to resize from
+Windows + right click -> resize windows<br>
+->picks the closest window corner to resize from<br>
 ->snaps to your work area (doesn't include your task bar)
 
 Holding shift limits movement to one axis (press shift **after** starting a function)
@@ -36,8 +36,8 @@ A settings UI to disable any part of this
 
 If you don't wanna install the script properly just yet, you can run the demo.exe .
 
-It won't work on some windows though, like task manager or other important windows.
-We'll get to fixing that after you're done with the demo.
+It won't work on some windows though, like task manager or other important windows.<br>
+We'll get to fixing that after you're done with the demo.<br>
 You can quit the demo by right clicking on the icon in the task tray and selecting "exit".
 
 To make sure that the names for taskView and snapAssist are correct and everything 
@@ -50,11 +50,11 @@ Once you're done with that, continue reading...
 
 <h3>Install AutoHotkey with UI Access:</h3>
 
-Install to: "C:\Program Files\AutoHotkey" (default)
+Install to: "C:\Program Files\AutoHotkey" (default)<br>
 (or change the "run script+UIA.bat" file to run with AutoHotkeyU64_UIA.exe
 from your custom install location.)
 
-In the installer options select:
+In the installer options select:<br>
 "Add 'Run with UI Access' to context menus"
 
 
@@ -77,7 +77,7 @@ local account on your machine, use the registry files in this folder.
 
 <h3>Autostart</h3>
 
-Tell task scheduler to run the .bat file at login for the fastest autostart (optional)
+Tell task scheduler to run the .bat file at login for the fastest autostart (optional)<br>
 (faster than the autostart folder).
 
 Otherwise just use the settings checkbox "Run at startup".
