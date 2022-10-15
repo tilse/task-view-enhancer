@@ -23,7 +23,7 @@ IniRead, resizeHK, taskViewEnhancerSettings.ini, settings, resizeHK, RButton
 IniRead, activationDistance, taskViewEnhancerSettings.ini, settings, activationDistance, 10
 IniRead, snapping, taskViewEnhancerSettings.ini, settings, snapping, 1
 IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
-IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, none
+IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, maximize
 
 IniRead, autostart, taskViewEnhancerSettings.ini, autostart, enabled, 0
 
@@ -169,12 +169,12 @@ showTask:
 		return
 	}
 
-	if(taskHK = "LWin" || taskHK = "RWin"){
+	if(taskHK_ = "~LWin" || taskHK_ = "~RWin"){
 		WinWaitActive %search%,,1
 	}
 
 	if(closeintent){
-		if(taskHK="LWin" || taskHK="RWin"){
+		if(taskHK_ = "~LWin" || taskHK_ = "~RWin"){
 			if(WinActive(search)){
 				sleep 1
 				send {esc}
