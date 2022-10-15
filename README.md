@@ -4,8 +4,8 @@
   <p align="center">Get the Linux experience on Windows!<p>
 </p>
 
-</b>
-</b>
+<br>
+<br>
 
 ## FEATURES
 
@@ -27,8 +27,8 @@ A settings UI to disable any part of this
 
 <img src="https://user-images.githubusercontent.com/59397795/195693644-a84f8769-3b32-4df2-aad2-bcb648672495.gif" height="300">
 
-</b>
-</b>
+<br>
+<br>
 
 ## INSTALL
 
@@ -60,8 +60,8 @@ In the installer options select:
 
 You can put this folder (unzipped) in any location where you wanna keep it and run "run script+UIA.bat".
 
-</b>
-</b>
+<br>
+<br>
 
 ## CUSTOMIZE
 
