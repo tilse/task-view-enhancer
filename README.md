@@ -4,6 +4,7 @@
   <p align="center">Get the Linux experience on Windows!<p>
 </p>
 
+
 ## FEATURES
 
 Left Windows Key -> task view
@@ -23,6 +24,7 @@ Holding shift limits movement to one axis (press shift **after** starting a func
 A settings UI to disable any part of this
 
 <img src="https://user-images.githubusercontent.com/59397795/195693644-a84f8769-3b32-4df2-aad2-bcb648672495.gif" height="300">
+
 
 
 ## INSTALL
@@ -54,6 +56,7 @@ In the installer options select:
 <h3>Run the script</h3>
 
 You can put this folder (unzipped) in any location where you wanna keep it and run "run script+UIA.bat".
+
 
 
 ## CUSTOMIZE
