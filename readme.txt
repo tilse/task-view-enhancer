@@ -1,4 +1,4 @@
-idk much about licensing but please ask me before you modify this code
+please ask me before you modify this code
 
 _________________________________________________________________________________
 0. FEATURES

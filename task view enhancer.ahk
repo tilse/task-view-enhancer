@@ -3,7 +3,10 @@ SendMode Input
 SetWorkingDir %A_AppData%  
 #singleinstance force
 #MaxHotkeysPerInterval, 300
-Process, close, demo.exe
+
+if(A_Scriptname != "demo.exe"){
+	Process, close, demo.exe
+}
 
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
@@ -32,7 +35,7 @@ Try
 	if(taskHKOn){
 		; !!! this remaps the windows key
 		Hotkey, %taskHK_%, showTask
-		taskHK := getKeyFromHotkey(taskHK_)
+		taskHK := getKeyFromHotkey(taskHK_) ;important for key state checks
 	}
 
 	; !!! this determines how often this script checks if task view is open to enable searching whenever you type (in milliseconds)
@@ -43,13 +46,13 @@ Try
 	if(moveHKOn){
 		; !!! this determines the hotkey to move windows.
 		Hotkey, %moveHKmodifier_% & %moveHK%, moveWindow
-		moveHKmodifier := getKeyFromHotkey(moveHKmodifier_)
+		moveHKmodifier := getKeyFromHotkey(moveHKmodifier_) ;important for key state checks
 	}
 
 	if(resizeHKOn){
 		; !!! for resizing windows
 		Hotkey, %resizeHKmodifier_% & %resizeHK%, resizeWindow
-		resizeHKmodifier := getKeyFromHotkey(resizeHKmodifier_)
+		resizeHKmodifier := getKeyFromHotkey(resizeHKmodifier_) ;important for key state checks
 	}
 }
 Catch, e
@@ -758,6 +761,7 @@ Gui, Add, CheckBox, x372 y89 w90 h30 venableMHK Checked%moveHKOn%, Enabled
 Gui, Add, CheckBox, x372 y149 w90 h30 venableRHK Checked%resizeHKOn%, Enabled
 
 
+
 Gui, Add, GroupBox, x2 y209 w470 h150 , Other Settings
 
 Gui, Add, Text, x12 y239 w170 h20 , Cursor Distance for Activation (px):
@@ -765,13 +769,18 @@ Gui, Add, Text, x12 y269 w170 h20 , Snapping:
 Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
 Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
 
+
 Gui, Add, Edit, x365 y234 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
 Gui, Add, Slider, x184 y234 w176 h30 vdist ToolTip gUpdateDistBuddy, %activationDistance%
+
 Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
+
 Gui, Add, Edit, x365 y294 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
 Gui, Add, Slider, x184 y294 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
+
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
+
 
 
 Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
@@ -823,24 +832,25 @@ kget(source, target){
 }
 
 UpdateDistBuddy:
-	GuiControlGet, temp,, dist
-	GuiControl,, distBuddy , %temp%
+	equalizeControls("dist", "distBuddy")
 return
 
 UpdateDistSlider:
-	GuiControlGet, temp,, distBuddy
-	GuiControl,, dist , %temp%
+	equalizeControls("distBuddy", "dist")
 return
 
 UpdateborderBuddy:
-	GuiControlGet, temp,, border
-	GuiControl,, borderBuddy , %temp%
+	equalizeControls("border", "borderBuddy")
 return
 
 UpdateBorderSlider:
-	GuiControlGet, temp,, borderBuddy
-	GuiControl,, border , %temp%
+	equalizeControls("borderBuddy", "border")
 return
+
+equalizeControls(source, target){
+	GuiControlGet, temp,, %source%
+	GuiControl,, %target% , %temp%
+}
 
 apply:
 IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
@@ -887,7 +897,12 @@ SetHKs:
 	IniWrite, %borderwidth%, taskViewEnhancerSettings.ini, settings, borderwidth
 	IniWrite, %bottomBehavior%, taskViewEnhancerSettings.ini, settings, bottomBehavior
 
-	Reload
+	if(FileExist(A_ScriptDir "\run script+UIA.bat") && A_Scriptname != "demo.exe"){
+		run, % A_ScriptDir "\run script+UIA.bat",,hide
+	}
+	else{
+		Reload
+	}
 Return
 
 throwCustom(e){
