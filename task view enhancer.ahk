@@ -30,12 +30,16 @@ IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior,
 
 IniRead, autostart, taskViewEnhancerSettings.ini, autostart, enabled, 0
 
+;important for key state checks
+taskHK := getKeyFromHotkey(taskHK_)
+moveHKmodifier := getKeyFromHotkey(moveHKmodifier_)
+resizeHKmodifier := getKeyFromHotkey(resizeHKmodifier_)
+
 Try
 {
 	if(taskHKOn){
 		; !!! this remaps the windows key
 		Hotkey, %taskHK_%, showTask
-		taskHK := getKeyFromHotkey(taskHK_) ;important for key state checks
 	}
 
 	; !!! this determines how often this script checks if task view is open to enable searching whenever you type (in milliseconds)
@@ -46,13 +50,11 @@ Try
 	if(moveHKOn){
 		; !!! this determines the hotkey to move windows.
 		Hotkey, %moveHKmodifier_% & %moveHK%, moveWindow
-		moveHKmodifier := getKeyFromHotkey(moveHKmodifier_) ;important for key state checks
 	}
 
 	if(resizeHKOn){
 		; !!! for resizing windows
 		Hotkey, %resizeHKmodifier_% & %resizeHK%, resizeWindow
-		resizeHKmodifier := getKeyFromHotkey(resizeHKmodifier_) ;important for key state checks
 	}
 }
 Catch, e
@@ -738,7 +740,7 @@ Gui, settings2:new
 Gui, Add, GroupBox, x2 y67 w470 h68 
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
-Gui, Add, Text, x12 y49 w90 h20 , Call Task View:
+Gui, Add, Text, x12 y49 w90 h20 , Remap Task View:
 Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
 Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
 Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):

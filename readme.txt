@@ -2,6 +2,8 @@ please ask me before you modify this code
 
 _________________________________________________________________________________
 0. FEATURES
+settings UI to disable any part of this
+
 Left Windows Key -> task view
 
 start searching by typing in task view
