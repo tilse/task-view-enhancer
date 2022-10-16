@@ -322,9 +322,9 @@ moveWindow:
 		winY1 := py2 - winHeight1 / 2 + 1
 	}
 	else if(winMax1){
-		CoordMode, relative
+		CoordMode, mouse, relative
 		MouseGetPos, mxr, myr
-		CoordMode, screen
+		CoordMode, mouse, screen
 		Loop, % MonitorCount{
 			if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
 				winWidthFull := mon%A_Index%workRight-mon%A_Index%workLeft
