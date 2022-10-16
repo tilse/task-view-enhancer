@@ -80,10 +80,7 @@ IniRead, taskView, taskViewEnhancerSettings.ini, windowNames, taskView
 IniRead, snapAssist, taskViewEnhancerSettings.ini, windowNames, snapAssist
 search := "ahk_exe SearchApp.exe" ;should work for any language
 
-; these are here to stop waiting for input when in task view
-Hotkey, ~*LButton, mousedown, off
-Hotkey, ~*RButton, mousedown, off
-Hotkey, ~*MButton, mousedown, off
+; disable shift from doing unintended things in combination with the move/resize hotkeys
 Hotkey, *$Shift, nothing, off
 
 getnames:
@@ -134,7 +131,7 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	SetTimer, taskInput, on
 }
 
-mouse_Flag = 0
+movedOrResized = 0
 
 IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
 if(keepOpen){
@@ -161,15 +158,16 @@ showTask:
 
 	SetTimer, taskInput, off
 	if(!(moveHKmodifier = taskHK) || !(resizeHKmodifier = taskHK)){
-		mouse_Flag = 0
+		movedOrResized = 0
 	}
 	
+showTaskGuaranteed:
 	;prevent repeats
 	keywait, %taskHK%
 	
 	;cancel if a different key got pressed while win was held down
-	if (A_PriorKey != taskHK || mouse_Flag) {
-		mouse_Flag = 0
+	if (A_PriorKey != taskHK || movedOrResized) {
+		movedOrResized = 0
 		SetTimer, taskInput, on
 		return
 	}
@@ -188,15 +186,12 @@ showTask:
 		else{
 			send {Esc}
 		}
-		mouse_Flag = 0
+		movedOrResized = 0
 		SetTimer, taskInput, on
 		return
 	}
 
-	Mouse_Flag = 0
-    Hotkey, ~*LButton, on
-    Hotkey, ~*RButton, on
-    Hotkey, ~*MButton, on
+	movedOrResized = 0
 
 	send {Blind}#{tab}
 
@@ -205,75 +200,58 @@ showTask:
 		run %A_WinDir%`\explorer.exe shell`:`:`:{3080F90E-D7AD-11D9-BD98-0000947B0257} ;this is a slower alternative to "send #{tab}", but more reliable
 		WinWaitActive %taskView%,,3
 		if(ErrorLevel){
-			Mouse_Flag = 0
-			Hotkey, ~*LButton, off
-			Hotkey, ~*RButton, off
-			Hotkey, ~*MButton, off
+			movedOrResized = 0
 			SetTimer, taskInput, on
 			taskView := "ERROR"
 			goto getnames
 			return
 		}
 	}
-	fromhk =1
+	fromhk = 1
 
+;this is what the timer triggers
 taskInput:
-	if(fromhk){
-		fromhk=0
-	}
-	else{
+	if(!fromhk){
 		if (!WinActive(taskView) ){
 			return
 		}
-		Mouse_Flag = 0
-		Hotkey, ~*LButton, on
-		Hotkey, ~*RButton, on
-		Hotkey, ~*MButton, on
+		movedOrResized = 0
 	}
+	fromhk = 0
 
-	;wait for any key
-	Input, key, L1 V T3, {VK0E}{LWin}{RWin}{Home}{End}{PgUp}{PgDn}{Del}{Ins}{BS}{Enter}{Pause} ;excluded: {LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{CapsLock}{NumLock}{PrintScreen}{Left}{Right}{Up}{Down}{AppsKey}{F1}{F2}{F3}{F4}{F5}{F6}{F7}{F8}{F9}{F10}{F11}{F12}
+	;wait for 1 key press
+	key := getAnyInput(3000) ;this function is at the bottom of the script
+
+	ignored := ["LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
 	
-	if(ErrorLevel != "Timeout" && Mouse_Flag = 0){
-		keyName := key
-		IfInString,ErrorLevel,EndKey:	;if endkey exists, convert to key
-		{
-			keyName := RegExReplace(ErrorLevel,"EndKey:","")
-		}
-
-		if (keyName = taskHK) { 
+	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0){
+		if (key = taskHK) { 
 			keywait, %taskHK%
-			if (A_PriorKey = taskHK && Mouse_Flag = 0 && (taskHK = "LWin" || taskHK = "RWin")) {
-				WinWaitActive %search%,,1
-				send {Esc}
+			if WinActive(taskView){ 
+				if (taskHK_ != "~LWin" && taskHK_ != "~RWin") {
+					send {Esc}
+				}
+			}
+			else{
+				goto showTaskGuaranteed
 			}
 		}
 		if WinActive(taskView){ 
-			if (key != Chr(27) && keyName != "Enter" && keyName != "	") { ;chr 27 = blank space character, matches some characters specified in the any key input check, notably Esc
+			if (key != "Esc" && key != "Enter" && key != "Tab") {
 				;open search
 				send #s
 				WinWaitActive %search%,,1
-				temp := A_Priorkey
 				send {%key%}
-				;WinMove, A, , A_ScreenWidth/4, 0 ;moves search to the middle
 			}
 		}
 	}
-	Hotkey, ~*LButton, off
-	Hotkey, ~*RButton, off
-	Hotkey, ~*MButton, off
-	mouse_Flag = 0
+	movedOrResized = 0
 	SetTimer, taskInput, on
 Return
 
-mousedown:
-	Mouse_Flag = 1
-	SendEvent, {Blind}{VK0E} ;unused virtual key
-return
-
 moveWindow:
 	Hotkey, *$Shift, on
-	mouse_Flag = 1
+	movedOrResized = 1
 	touchOrPen := GetKeyState(moveHK, "P") = 0
 	CoordMode, mouse, screen
 	MouseGetPos, px1, py1, window
@@ -321,8 +299,6 @@ moveWindow:
 		SysGet, mon%A_Index%work, MonitorWorkArea, %A_Index%
 		SysGet, mon%A_Index%, Monitor, %A_Index%
 	}
-	MonitorCount++
-	mon%MonitorCount%Left = ERROR
 
 	WinGet, winMax1, MinMax, A
 	WinGetPos, winX1, winY1, winWidth1, winHeight1, A
@@ -353,10 +329,7 @@ moveWindow:
 		;window snapping
 		snap := ""
 		if(snapping = 1){
-			Loop{
-				if(mon%A_Index%Left = "ERROR"){
-					break
-				}
+			Loop, % MonitorCount{
 				if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
 					if (px2 - borderwidth <= mon%A_Index%Left){
 						snap := "L"
@@ -370,6 +343,7 @@ moveWindow:
 					else if(py2 + borderwidth >= mon%A_Index%Bottom){
 						snap := snap "D"
 					}
+					break
 				}
 			}
 		
@@ -524,7 +498,7 @@ return
 
 resizeWindow:
 	Hotkey, *$Shift, on
-	mouse_Flag = 1
+	movedOrResized = 1
 	touchOrPen := GetKeyState(resizeHK, "P") = 0
 	CoordMode, mouse, screen
 	MouseGetPos, px1, py1, window
@@ -548,9 +522,18 @@ resizeWindow:
 		Sleep, %loopsleep%
 	}
 	
+	;wait for window
+	Loop 20{
+		WinGetActiveTitle, moveWin
+		if(moveWin != ""){
+			break
+		}
+		sleep %loopsleep%
+	}
 	WinGet, winMax1, MinMax, A
 	WinGetPos, winX1, winY1, winWidth1, winHeight1, A
 
+	;check which corner should get resized
 	RD := 0, RU := 0, LU := 0, LD := 0
 	if(px2 > winX1+winWidth1/2 && py2 > winY1+winHeight1/2){
 		tempcur := 32642
@@ -570,81 +553,44 @@ resizeWindow:
 	}
 	curChange(tempcur)
 
-	;get monitor bounds automatically
+	;read monitor layout
 	SysGet, MonitorCount, MonitorCount
 	Loop, %MonitorCount%
 	{
 		SysGet, mon%A_Index%work, MonitorWorkArea, %A_Index%
 		SysGet, mon%A_Index%, Monitor, %A_Index%
 	}
-	MonitorCount++
-	mon%MonitorCount%Left = ERROR
 
 	;check if the opposite edge is in snapping distance 
 	;for automatic fullscreening when the window has reached the size of the work area
-	canMaximize = 0
-	if(RD=1){
-		sX := winX1 +bwh
-		sY := winY1 +bwh
-		snap:=""
-		Loop{
-			if(mon%A_Index%Left = "ERROR"){
-				break
+	sX := winX1 +bwh*(RD+RU-LU-LD) +winWidth1*(LU+LD)
+	sY := winY1 +bwh*(RD-RU+LD-LU) +winHeight1*(RU+LU)
+	snap:=""
+	Loop, % MonitorCount{
+		if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
+			if (sX - borderwidth <= mon%A_Index%workLeft){
+				snap := "L"
+				edgeX := mon%A_Index%workLeft
 			}
-			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
-				if (sX - borderwidth <= mon%A_Index%workLeft && sY - borderwidth <= mon%A_Index%workTop){
-					canMaximize = 1
-				}
+			else if (sX + borderwidth >= mon%A_Index%workRight){
+				snap := "R"
+				edgeX := mon%A_Index%workRight
 			}
+			if(sY - borderwidth <= mon%A_Index%workTop){
+				snap := snap "U"
+				edgeY := mon%A_Index%workTop
+			}
+			else if(sY + borderwidth >= mon%A_Index%workBottom){
+				snap := snap "D"
+				edgeY := mon%A_Index%workBottom
+			}
+			maxMon := A_Index
+			break
 		}
 	}
-	else if(RU=1){
-		sX := winX1 +bwh
-		sY := winY1 + winHeight1 -bwh
-		snap := ""
-		Loop{
-			if(mon%A_Index%Left = "ERROR"){
-				break
-			}
-			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
-				if (sX - borderwidth <= mon%A_Index%workLeft && sY + borderwidth >= mon%A_Index%workBottom){
-					canMaximize = 1
-				}
-			}
-		}
-	}
-	else if(LU=1){
-		sX := winX1 + winWidth1 -bwh
-		sY := winY1 + winHeight1 -bwh
-		snap := ""
-		Loop{
-			if(mon%A_Index%Left = "ERROR"){
-				break
-			}
-			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
-				if (sX + borderwidth >= mon%A_Index%workRight && sY + borderwidth >= mon%A_Index%workBottom){
-					canMaximize = 1
-				}
-			}
-		}
-	}
-	else{
-		sX := winX1  + winWidth1 -bwh
-		sY := winY1 +bwh
-		snap := ""
-		Loop{
-			if(mon%A_Index%Left = "ERROR"){
-				break
-			}
-			if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
-				if (sX + borderwidth >= mon%A_Index%workRight && sY - borderwidth <= mon%A_Index%workTop){
-					canMaximize = 1
-				}
-			}
-		}
-	}
-
-	Loop, % MonitorCount-1
+	canMaximize := LU && snap = "RD" || LD && snap = "RU" || RU && snap = "LD" || RD && snap = "LU"
+	
+	Loop, % MonitorCount
 	{
 		;offset monitor area for snap checks so it snaps from both sides of the edge
 		mon%A_Index%Left 	+= borderwidth*(RU+RD-LU-LD)
@@ -653,27 +599,17 @@ resizeWindow:
 		mon%A_Index%Bottom 	+= borderwidth*(RD+LD-RU-LU)
 	}
 
-	;resize
-	Loop 20{
-		WinGetActiveTitle, moveWin
-		if(moveWin != ""){
-			break
-		}
-		sleep %loopsleep%
-	}
-	
 	if(winMax1){
-		Loop{
-			if(mon%A_Index%Left = "ERROR"){
-				break
-			}
+		Loop, % MonitorCount{
 			if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
 				winWidth1 := mon%A_Index%workRight-mon%A_Index%workLeft
 				winHeight1 := mon%A_Index%workBottom-mon%A_Index%workTop
+				winX1 :=  mon%A_Index%workLeft
+				winY1 := mon%A_Index%workTop
+				maxMon := A_Index
+				break
 			}
 		}
-		winX1 += 8
-		winY1 += 10
 		WinRestore, %moveWin%
 		canMaximize = 1
 	}
@@ -696,10 +632,7 @@ resizeWindow:
 			sX := winX1 + diffX + winWidth1*(RD+RU)
 			sY := winY1 + diffY + winHeight1*(RD+LD)
 			snap := ""
-			Loop{
-				if(mon%A_Index%Left = "ERROR"){
-					break
-				}
+			Loop, % MonitorCount{
 				if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
 					if (sX - borderwidth <= mon%A_Index%workLeft){
 						snap := "L"
@@ -717,6 +650,7 @@ resizeWindow:
 						snap := snap "D"
 						edgeY := mon%A_Index%workBottom
 					}
+					break
 				}
 			}
 		}
@@ -753,19 +687,19 @@ resizeWindow:
 		switch snap
 		{
 		case "LD":
-			if(LD=1){
+			if(LD=1 && edgeX = mon%maxMon%workLeft && edgeY = mon%maxMon%workBottom){
 				WinMaximize, %moveWin%
 			}
 		case "RD":
-			if(RD=1){
+			if(RD=1 && edgeX = mon%maxMon%workRight && edgeY = mon%maxMon%workBottom){
 				WinMaximize, %moveWin%
 			}
 		case "LU":
-			if(LU=1){
+			if(LU=1 && edgeX = mon%maxMon%workLeft && edgeY = mon%maxMon%workTop){
 				WinMaximize, %moveWin%
 			}
 		case "RU":
-			if(RU=1){
+			if(RU=1 && edgeX = mon%maxMon%workRight && edgeY = mon%maxMon%workTop){
 				WinMaximize, %moveWin%
 			}
 		Default:
@@ -861,30 +795,26 @@ Gui, Add, Edit, x192 y169 w110 h20 vRHK r1, %resizeHK%
 Gui, Add, Button, x312 y169 w50 h20 vbut5 gkget5, Input
 
 
-
-
 Gui, Add, GroupBox, x2 y209 w470 h150 , Other Settings
 
 Gui, Add, Text, x12 y239 w170 h20 , Cursor Distance for Activation (px):
-Gui, Add, Text, x12 y269 w170 h20 , Snapping:
-Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
-Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
-
-
 Gui, Add, Slider, x184 y234 w176 h30 vdist ToolTip gUpdateDistBuddy, %activationDistance%
 Gui, Add, Edit, x365 y234 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
 
+Gui, Add, Text, x12 y269 w170 h20 , Snapping:
 Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
 
+Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
 Gui, Add, Slider, x184 y294 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
 Gui, Add, Edit, x365 y294 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
 
+Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
 
-
 Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
+
 Gui, Add, Link, x12 y386 w180 h20, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">Autohotkey Syntax for Hotkeys</a>
 
 Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
@@ -897,7 +827,7 @@ Gui, Add, Text, x100 y430 w300 h80 , Yahaha, you found me!
 ; Generated using SmartGUI Creator 4.0
 
 middleX:=A_ScreenWidth/2-240
-middleY:=A_ScreenHeight/2-220
+middleY:=A_ScreenHeight/2-205
 Gui, Show, x%middleX% y%middleY% h410 w480
 
 IniWrite, 0, taskViewEnhancerSettings.ini, temp, keepOpen
@@ -921,14 +851,12 @@ return
 
 kget(source, target){
 	GuiControl,, %source% , Waiting
-    KeyWait, LButton
-    loop 200{
-        if(A_PriorKey != "LButton" || GetKeyState("LButton")){
-            GuiControl,,%target%,% A_PriorKey
-            break
-        }
-        sleep 30
-    }
+    
+	key := getAnyInput(6000)
+	if(ErrorLevel != "Timeout"){
+		GuiControl,,% target ,% key
+	}
+	
     GuiControl,, %source% , Input
 }
 
@@ -1039,3 +967,42 @@ return
 GuiClose:
 gui destroy
 return
+
+getIndex(haystack, needle) {
+	if !(IsObject(haystack)) || (haystack.Length() = 0)
+		return 0
+	for index, value in haystack
+		if (value = needle)
+			return index
+	return 0
+}
+
+getAnyInput(timeoutMs := 0){
+	;make sure the keyboard and mouse hooks are on
+	;careful, touch presses don't get recognized in task view,
+	;but the input function is even worse because it NEVER recognizes them
+	keyBefore := A_PriorKey
+	KeyWait, % keyBefore
+	ErrorLevel := "Timeout"
+	if(timeoutMs != 0){
+		loop, % timeoutMs/30{
+			if(A_PriorKey != keyBefore || GetKeyState(keyBefore)){
+				ErrorLevel := 0
+				return A_PriorKey
+			}
+			sleep 30
+		}
+	}
+	else{
+		;infinite loop if timeoutMs = 0
+		loop{
+			if(A_PriorKey != keyBefore || GetKeyState(keyBefore)){
+				ErrorLevel := 0
+				msgbox, % A_PriorKey
+				return A_PriorKey
+			}
+			sleep 30
+		}
+	}
+    
+}
