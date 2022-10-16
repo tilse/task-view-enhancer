@@ -315,14 +315,31 @@ moveWindow:
 		}
 		sleep %loopsleep%
 	}
-	if(winMax1 || resetWinPos){
-		MouseGetPos, px2, py2
+	if(resetWinPos){
 		WinRestore, %moveWin%
 		WinGetPos, winX1, winY1, winWidth1, winHeight1, A
 		winX1 := px2 - winWidth1 / 2
 		winY1 := py2 - winHeight1 / 2 + 1
-		WinMove, %moveWin%, , winX1, winY1
 	}
+	else if(winMax1){
+		CoordMode, relative
+		MouseGetPos, mxr, myr
+		CoordMode, screen
+		Loop, % MonitorCount{
+			if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
+				winWidthFull := mon%A_Index%workRight-mon%A_Index%workLeft
+				winHeightFull := mon%A_Index%workBottom-mon%A_Index%workTop
+				winXFull :=  mon%A_Index%workLeft
+				winYFull := mon%A_Index%workTop
+				break
+			}
+		}
+		WinRestore, %moveWin%
+		WinGetPos, , , winWidth1, winHeight1, A
+		winX1 := px2 - mxr / winWidthFull * winWidth1
+		winY1 := py2 - myr / winHeightFull * winHeight1
+	}
+
 	Loop{
 		MouseGetPos, px2, py2
 
