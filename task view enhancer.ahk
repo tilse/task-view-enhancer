@@ -250,7 +250,6 @@ taskInput:
 Return
 
 moveWindow:
-	Hotkey, *$Shift, on
 	movedOrResized = 1
 	touchOrPen := GetKeyState(moveHK, "P") = 0
 	CoordMode, mouse, screen
@@ -291,6 +290,7 @@ moveWindow:
 		}
 		Sleep, %loopsleep%
 	}
+	Hotkey, *$Shift, on
 
 	;get monitor bounds automatically
 	SysGet, MonitorCount, MonitorCount
@@ -514,7 +514,6 @@ moveWindow:
 return
 
 resizeWindow:
-	Hotkey, *$Shift, on
 	movedOrResized = 1
 	touchOrPen := GetKeyState(resizeHK, "P") = 0
 	CoordMode, mouse, screen
@@ -538,6 +537,7 @@ resizeWindow:
 		}
 		Sleep, %loopsleep%
 	}
+	Hotkey, *$Shift, on
 	
 	;wait for window
 	Loop 20{
