@@ -838,26 +838,28 @@ Gui, Add, GroupBox, x2 y67 w470 h68
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
 Gui, Add, Text, x12 y49 w150 h20 , Remap Task View:
-Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
-Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
-Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
-Gui, Add, Text, x12 y169 w150 h20 , Resize windows (main key):
-
 Gui, Add, Edit, x192 y49 w110 h20 vTHK r1, %taskHK_%
-Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier_%
-Gui, Add, Edit, x192 y109 w110 h20 vMHK r1, %moveHK%
-Gui, Add, Edit, x192 y139 w110 h20 vRHKM r1, %resizeHKmodifier_%
-Gui, Add, Edit, x192 y169 w110 h20 vRHK r1, %resizeHK%
-
 Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
+Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
+
+Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
+Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier_%
 Gui, Add, Button, x312 y79 w50 h20 vbut2 gkget2, Input
+Gui, Add, CheckBox, x372 y89 w90 h30 venableMHK Checked%moveHKOn%, Enabled
+
+Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
+Gui, Add, Edit, x192 y109 w110 h20 vMHK r1, %moveHK%
 Gui, Add, Button, x312 y109 w50 h20 vbut3 gkget3, Input
+
+Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
+Gui, Add, Edit, x192 y139 w110 h20 vRHKM r1, %resizeHKmodifier_%
 Gui, Add, Button, x312 y139 w50 h20 vbut4 gkget4, Input
+Gui, Add, CheckBox, x372 y149 w90 h30 venableRHK Checked%resizeHKOn%, Enabled
+
+Gui, Add, Text, x12 y169 w150 h20 , Resize windows (main key):
+Gui, Add, Edit, x192 y169 w110 h20 vRHK r1, %resizeHK%
 Gui, Add, Button, x312 y169 w50 h20 vbut5 gkget5, Input
 
-Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
-Gui, Add, CheckBox, x372 y89 w90 h30 venableMHK Checked%moveHKOn%, Enabled
-Gui, Add, CheckBox, x372 y149 w90 h30 venableRHK Checked%resizeHKOn%, Enabled
 
 
 
@@ -869,25 +871,25 @@ Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
 Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
 
 
-Gui, Add, Edit, x365 y234 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
 Gui, Add, Slider, x184 y234 w176 h30 vdist ToolTip gUpdateDistBuddy, %activationDistance%
+Gui, Add, Edit, x365 y234 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
 
 Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
 
-Gui, Add, Edit, x365 y294 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
 Gui, Add, Slider, x184 y294 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
+Gui, Add, Edit, x365 y294 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
 
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
 
 
+Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
+Gui, Add, Link, x12 y386 w180 h20, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">Autohotkey Syntax for Hotkeys</a>
+
 Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
 Gui, Add, Button, x303 y369 w80 h30 gapply , Apply
 Gui, Add, Button, x388 y369 w80 h30 gresetSettings, Reset
-
-Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
-Gui, Add, Link, x12 y386 w180 h20, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">Autohotkey Syntax for Hotkeys</a>
 
 gui Font, s20
 Gui, Add, Text, x500 y205 w170 h80 , Hi :3
