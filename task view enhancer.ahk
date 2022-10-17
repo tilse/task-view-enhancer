@@ -1,17 +1,58 @@
 #NoEnv 
 SendMode Input
-SetWorkingDir %A_AppData%  
-#singleinstance force
-#MaxHotkeysPerInterval, 300
+SetWorkingDir %A_AppData%
+;better than singleinstance force because it can both close exe and ahk
+#SingleInstance, off
+DetectHiddenWindows, On
+searchforthisstring := StrSplit(A_ScriptName, ".")[1]
+SetTitleMatchMode, 1
 
-if(A_Scriptname != "demo.exe"){
-	Process, close, demo.exe
+WinGet, WindowList, List
+Loop, %WindowList%
+{
+	If (WindowList%A_Index% != A_ScriptHwnd){
+		DetectHiddenWindows, On
+		WinGetTitle, TitleHidden, % "ahk_id " . WindowList%A_Index%
+		DetectHiddenWindows, Off
+		WinGetTitle, Title, % "ahk_id " . WindowList%A_Index%
+		if(Title != TitleHidden){
+			IfInString, TitleHidden, %searchforthisstring%
+			{
+				WinClose, % "ahk_id " . WindowList%A_Index%
+			}
+		}
+	}
+}
+DetectHiddenWindows, On
+WinGet, WindowList, List
+i=0
+Loop, %WindowList%
+{
+	If (WindowList%A_Index% != A_ScriptHwnd){
+		DetectHiddenWindows, On
+		WinGetTitle, TitleHidden, % "ahk_id " . WindowList%A_Index%
+		DetectHiddenWindows, Off
+		WinGetTitle, Title, % "ahk_id " . WindowList%A_Index%
+		if(Title != TitleHidden){
+			IfInString, TitleHidden, %searchforthisstring%
+			{
+				i++
+			}
+		}
+	}
+}
+if(i > 0){
+	msgbox Couldn't close an Instance of this script.
+	exitapp
 }
 
+Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
 Menu, Tray, Default, Settings
 Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
+
+#MaxHotkeysPerInterval, 300
 
 ;----------------------------------CONFIG------------------------------------
 IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 1
@@ -28,7 +69,21 @@ IniRead, snapping, taskViewEnhancerSettings.ini, settings, snapping, 1
 IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
 IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, maximize
 
-IniRead, autostart, taskViewEnhancerSettings.ini, autostart, enabled, 0
+
+IniRead, toggleAutorunAdmin, taskViewEnhancerSettings.ini, temp, toggleAutorunAdmin, 0
+if(toggleAutorunAdmin){
+	toggleAutorunAdmin()
+	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleAutorunAdmin
+}
+
+IniRead, noLoginChange, taskViewEnhancerSettings.ini, temp, noLoginChange, 0
+if(noLoginChange){
+	IniWrite, 0, taskViewEnhancerSettings.ini, temp, noLoginChange
+	goto noLoginChange
+}
+
+LinkFile=%A_Startup%\%A_ScriptName%
+autostart := IsAutorunEnabled() || fileexist(LinkFile)
 
 ;important for key state checks
 taskHK := getKeyFromHotkey(taskHK_)
@@ -83,10 +138,11 @@ search := "ahk_exe SearchApp.exe" ;should work for any language
 ; disable shift from doing unintended things in combination with the move/resize hotkeys
 Hotkey, *$Shift, nothing, off
 
+e := "Unknown names for task view and snap assist.`nThe script will get these names now..."
 getnames:
 if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	SetTimer, taskInput, off
-	msgbox % "Unknown names for task view and snap assist.`nThe script will get these names now..."
+	msgbox % e
 	WinGetActiveTitle, OutputVar
 	run %A_WinDir%`\explorer.exe shell`:`:`:{3080F90E-D7AD-11D9-BD98-0000947B0257} ;this is a slower alternative to "send #{tab}", but more reliable
 	WinWaitNotActive %Outputvar%,, 2
@@ -203,6 +259,7 @@ showTaskGuaranteed:
 			movedOrResized = 0
 			SetTimer, taskInput, on
 			taskView := "ERROR"
+			e := "Timeout occurred. Getting Names for Task View and Snap Assist again."
 			goto getnames
 			return
 		}
@@ -226,17 +283,19 @@ taskInput:
 	
 	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0){
 		if (key = taskHK) { 
-			keywait, %taskHK%
-			if WinActive(taskView){ 
-				if (taskHK_ != "~LWin" && taskHK_ != "~RWin") {
-					send {Esc}
+			if (WinActive(taskView)){
+				keywait, %taskHK%
+				if(taskHK_ = "~LWin" || taskHK_ = "~RWin"){
+					WinWaitActive %search%,,1
 				}
+				send {Esc}
 			}
 			else{
+				keywait, %taskHK%
 				goto showTaskGuaranteed
 			}
 		}
-		if WinActive(taskView){ 
+		else if (WinActive(taskView)){ 
 			if (key != "Esc" && key != "Enter" && key != "Tab") {
 				;open search
 				send #s
@@ -793,6 +852,8 @@ Gui, Add, Edit, x192 y49 w110 h20 vTHK r1, %taskHK_%
 Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
 Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
 
+Gui, Add, Link, x370 y10 w100 h14, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">AutoHotkey Syntax</a>
+
 Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
 Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier_%
 Gui, Add, Button, x312 y79 w50 h20 vbut2 gkget2, Input
@@ -832,7 +893,10 @@ Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|
 
 Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
 
-Gui, Add, Link, x12 y386 w180 h20, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">Autohotkey Syntax for Hotkeys</a>
+RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
+noLoginPrompt := regval = 00000000
+Gui, Add, CheckBox, x12 y384 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gnoLoginChange, Disable Login Prompt (Task View)
+
 
 Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
 Gui, Add, Button, x303 y369 w80 h30 gapply , Apply
@@ -943,12 +1007,7 @@ SetHKs:
 	IniWrite, %borderwidth%, taskViewEnhancerSettings.ini, settings, borderwidth
 	IniWrite, %bottomBehavior%, taskViewEnhancerSettings.ini, settings, bottomBehavior
 
-	if(FileExist(A_ScriptDir "\run script+UIA.bat") && A_Scriptname != "demo.exe"){
-		run, % A_ScriptDir "\run script+UIA.bat",,hide
-	}
-	else{
-		Reload
-	}
+	Reload
 Return
 
 throwCustom(e){
@@ -957,33 +1016,160 @@ throwCustom(e){
 }
 
 AutostartChanged:
-	SplitPath, A_Scriptname, , , , OutNameNoExt 
-	LinkFile=%A_Startup%\%OutNameNoExt%.lnk
-	If (fileexist(LinkFile)){
+	If (IsAutorunEnabled()){
+		if(fileexist(LinkFile)){
+			FileDelete, %LinkFile%
+		}
+		toggleAutorunAdmin()
+		autostart = 0
+	}
+	else if(fileexist(LinkFile)){
 		FileDelete, %LinkFile%
 		autostart = 0
 	}
 	else{
-		FileCreateShortcut, %A_ScriptDir%\run script+UIA.bat, %LinkFile% 
+		msgbox, 4,,Do you want faster Autostart with elevated privileges?
+		IfMsgBox, Yes
+			toggleAutorunAdmin()
+		IfMsgBox, No
+			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile% 
 		autostart = 1
 	}
+return
 
-	IniWrite, %autostart%, taskViewEnhancerSettings.ini, autostart, enabled
+noLoginChange:
+	try{
+		if(noLoginPrompt = 1){
+			RegDelete, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
+			noLoginPrompt = 0
+			msgbox Login prompt enabled again (why?). This will take effect after a reboot.
+		}
+		else{
+			RegWrite, REG_DWORD, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities , 00000000
+			noLoginPrompt = 1
+			msgbox Login prompt disabled. This will take effect after a reboot.
+		}
+	}
+	catch{
+		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
+		try{
+			run, *RunAs "%A_ScriptFullPath%"
+			IniWrite, 1, taskViewEnhancerSettings.ini, temp, noLoginChange
+			ExitApp
+		}
+		catch{
+			GuiControl, , noLoginPrompt , % noLoginPrompt
+		}
+	}
 return
 
 resetSettings:
-	msgbox, 4,, Are you sure you want to reset your settings to default?
+	msgbox, 4,, Are you sure you want to reset ALL your settings to default?
 	IfMsgBox, Yes
-	{
-		IniDelete, taskViewEnhancerSettings.ini, settings
-		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
-		Reload
-	}
+		goto reset
 return
 
 GuiClose:
 gui destroy
 return
+
+toggleAutorunAdmin(){
+	taskName = TaskViewEnhancer
+	try{
+		if(IsAutorunEnabled()){
+			DisableAutorun(taskName)
+		}
+		else{
+			EnableAutorun(taskName)
+		}
+	}
+	Catch{
+		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
+		try{
+			run, *RunAs "%A_ScriptFullPath%"
+			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleAutorunAdmin
+			ExitApp
+		}
+		catch{
+			LinkFile=%A_Startup%\%A_ScriptName%
+			autostart := IsAutorunEnabled() || fileexist(LinkFile)
+			GuiControl, , enableStartup , % autostart
+		}
+	}
+}
+
+IsAutorunEnabled()
+{
+	taskName = TaskViewEnhancer
+	Try{
+		objService := ComObjCreate("Schedule.Service") 
+		objService.Connect()
+		objFolder := objService.GetFolder("\")
+		objTask := objFolder.GetTask(taskName)
+		return objTask.Name != ""
+	}
+	catch{
+		return 0
+	}
+}
+
+EnableAutorun(taskName)
+{
+	if(IsAutorunEnabled())
+		return
+	
+	tempDir := A_ScriptDir
+	
+	TriggerType = 9   ; trigger on logon. 
+	ActionTypeExec = 0  ; specifies an executable action. 
+	TaskCreateOrUpdate = 6 
+	Task_Runlevel_Highest = 1 
+
+	objService := ComObjCreate("Schedule.Service") 
+	objService.Connect() 
+
+	objFolder := objService.GetFolder("\") 
+	objTaskDefinition := objService.NewTask(0) 
+
+	principal := objTaskDefinition.Principal 
+	principal.LogonType := 1    ; Set the logon type to TASK_LOGON_PASSWORD 
+	principal.RunLevel := Task_Runlevel_Highest  ; Tasks will be run with the highest privileges. 
+
+	colTasks := objTaskDefinition.Triggers 
+	objTrigger := colTasks.Create(TriggerType) 
+	colActions := objTaskDefinition.Actions 
+	objAction := colActions.Create(ActionTypeExec) 
+	objAction.ID := taskName
+	runThisArgument = %tempDir%\task view enhancer.ahk
+	if(InStr(runThisArgument, .exe))
+		objAction.Path := """"  A_ScriptFullPath """"
+	else
+	{
+		runThisArgument = %tempDir%\task view enhancer.ahk
+		objAction.Path := """" A_AhkPath """"
+		objAction.Arguments := """" runThisArgument """"
+	}
+	objAction.WorkingDirectory := tempDir
+	objInfo := objTaskDefinition.RegistrationInfo 
+	objInfo.Author := taskName 
+	objInfo.Description := "Run " taskName " through task scheduler for elevated privileges." 
+	objSettings := objTaskDefinition.Settings 
+	objSettings.Enabled := True 
+	objSettings.Hidden := False 
+	objSettings.StartWhenAvailable := True 
+	objSettings.ExecutionTimeLimit := "PT0S"
+	objSettings.DisallowStartIfOnBatteries := False
+	objSettings.StopIfGoingOnBatteries := False
+	objFolder.RegisterTaskDefinition(taskName, objTaskDefinition, TaskCreateOrUpdate , "", "", 3 ) 
+}
+
+DisableAutorun(taskName)
+{
+	objService := ComObjCreate("Schedule.Service") 
+	objService.Connect()
+	objFolder := objService.GetFolder("\")
+	objFolder.DeleteTask(taskName, 0)
+}
 
 getIndex(haystack, needle) {
 	if !(IsObject(haystack)) || (haystack.Length() = 0)
@@ -1022,4 +1208,29 @@ getAnyInput(timeoutMs := 0){
 		}
 	}
     
+}
+
+reset:
+	FileDelete, taskViewEnhancerSettings.ini
+
+	RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
+	if(regval = 00000000){
+		RegDelete, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
+	}
+
+	If (IsAutorunEnabled()){
+		if(fileexist(LinkFile)){
+			FileDelete, %LinkFile%
+		}
+		toggleAutorunAdmin()
+	}
+	else if(fileexist(LinkFile)){
+		FileDelete, %LinkFile%
+	}
+	Reload
+return
+
+;unused but i like this function
+folderUp(path){
+	return RegExReplace(path,"[^\\]+\\?$")
 }
