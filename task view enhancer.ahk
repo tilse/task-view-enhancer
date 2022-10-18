@@ -10,8 +10,8 @@ Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
 
 #MaxHotkeysPerInterval, 300
 #SingleInstance, force
-exe := StrSplit(A_ScriptName, ".")[1] ".exe"
-Process, close, %exe%
+nameNoExt := StrSplit(A_ScriptName, ".")[1]
+Process, close, %nameNoExt%.exe
 
 ;restart with UIA if possible / helpful
 if (!A_IsAdmin && !InStr(A_AhkPath, "_UIA.exe") && !A_IsCompiled) {
@@ -44,7 +44,7 @@ if(toggleAutorunAdmin){
 	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleAutorunAdmin
 }
 
-LinkFile=%A_Startup%\%A_ScriptName%
+LinkFile=%A_Startup%\%nameNoExt%.lnk
 autostart := IsAutorunEnabled() || fileexist(LinkFile)
 
 ;important for key state checks
