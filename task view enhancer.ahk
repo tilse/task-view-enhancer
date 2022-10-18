@@ -23,7 +23,9 @@ if(toggleAutorun){
 
 #SingleInstance, force
 nameNoExt := StrSplit(A_ScriptName, ".")[1]
-Process, close, %nameNoExt%.exe
+if(!A_IsCompiled){
+	Process, close, %nameNoExt%.exe
+}
 
 ;thank you: https://www.reddit.com/r/AutoHotkey/comments/shg99e/run_scripts_with_ui_access_uia/ for this
 if (!InStr(A_AhkPath, "_UIA.exe")) {
@@ -49,6 +51,9 @@ if (!InStr(A_AhkPath, "_UIA.exe")) {
 		RunWait % A_ComSpec " /C """ cmd """", % A_Temp, hide
 		if(!FileExist(newPath)){
 			msgbox,0x40,, Installation unsuccessful, script will continue to run without UI Access.
+		}
+		else{
+			msgbox Done. You can Launch the .ahk script now.
 		}
 	}
 
@@ -303,6 +308,7 @@ taskInput:
 Return
 
 moveWindow:
+	Hotkey, *$Shift, on
 	movedOrResized = 1
 	touchOrPen := GetKeyState(moveHK, "P") = 0
 	CoordMode, mouse, screen
@@ -326,6 +332,7 @@ moveWindow:
 
 				WinWaitNotActive, ahk_id %window%,, 2
 				if (ErrorLevel) {
+					Hotkey, *$Shift, off
 					return
 				}
 			}
@@ -339,11 +346,11 @@ moveWindow:
 		}
 		else if(GetKeyState(moveHK, "P") = 0 && !touchOrPen || touchOrPen && GetKeyState(moveHKmodifier, "P") = 0){
 			WinActivate, ahk_id %window%
+			Hotkey, *$Shift, off
 			return
 		}
 		Sleep, %loopsleep%
 	}
-	Hotkey, *$Shift, on
 
 	;get monitor bounds automatically
 	SysGet, MonitorCount, MonitorCount
@@ -567,6 +574,7 @@ moveWindow:
 return
 
 resizeWindow:
+	Hotkey, *$Shift, on
 	movedOrResized = 1
 	touchOrPen := GetKeyState(resizeHK, "P") = 0
 	CoordMode, mouse, screen
@@ -577,6 +585,7 @@ resizeWindow:
 		MouseGetPos, px2, py2
 		if(abs(px2 - px1) >= activationDistance || abs(py2 - py1) >= activationDistance){
 			if (WinActive(taskView) || WinActive(snapAssist)){
+				Hotkey, *$Shift, off
 				return
 			}
 			else {
@@ -586,11 +595,12 @@ resizeWindow:
 		}
 		else if(GetKeyState(resizeHK, "P") = 0 && !touchOrPen || touchOrPen && GetKeyState(resizeHKmodifier, "P") = 0){
 			send {%resizeHK%}
+			Hotkey, *$Shift, off
 			return
 		}
 		Sleep, %loopsleep%
 	}
-	Hotkey, *$Shift, on
+	
 	
 	;wait for window
 	Loop 20{
