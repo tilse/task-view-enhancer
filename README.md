@@ -35,11 +35,13 @@ A settings UI to disable any part of this
 
 ## INSTALL
 
-No need for any installation. Just note that when the script is not running as admin, certain programs like Task Manager disable your Hotkeys while focused.
+The executable also functions as an install guide.
 
-(Unless you have AutoHotkey with UI Access installed)
+Run the exe file to install AutoHotkey with UI Access to make the script work with elevated windows like task manager. (optional)
 
-If you enable autostart with elevated privileges in the script settings, it will automatically run as admin.
+If you want to get autohotkey directly from the source, download it here instead. (The script fetches an up to date version of it though)
+
+https://www.autohotkey.com/
 
 <br>
 <br>
@@ -56,13 +58,13 @@ To adjust some other settings after the initial startup, click the task tray ico
 
 Use the settings checkbox "Run at startup". You will be asked what startup mode you want.
 
-Elevated startup runs the script earlier and enables you to move any window, even stuff like Task Manager.
+Faster startup runs the script with Task Scheduler at logon, which is slightly faster than the normal startup folder, which the script will be started though anyway.
 
 <br>
 
 <h3>Task View Login Prompt</h3>
 
-To disable the Microsoft account login prompt in task view you get when you're using a local account on your machine, use the registry files in this folder.
+To disable the Microsoft account login prompt in task view you get when you're using a local account on your machine, use the checkbox in the settings.
 
 <br>
 
