@@ -11,54 +11,14 @@ Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
 #MaxHotkeysPerInterval, 300
 
 ;better than singleinstance force because it can both close exe and ahk
-#SingleInstance, off
-DetectHiddenWindows, On
-searchforthisstring := StrSplit(A_ScriptName, ".")[1]
-SetTitleMatchMode, 1
-
-WinGet, WindowList, List
-Loop, %WindowList%
-{
-	If (WindowList%A_Index% != A_ScriptHwnd){
-		DetectHiddenWindows, On
-		WinGetTitle, TitleHidden, % "ahk_id " . WindowList%A_Index%
-		DetectHiddenWindows, Off
-		WinGetTitle, Title, % "ahk_id " . WindowList%A_Index%
-		if(Title != TitleHidden){
-			IfInString, TitleHidden, %searchforthisstring%
-			{
-				WinClose, % "ahk_id " . WindowList%A_Index%
-			}
-		}
-	}
-}
-DetectHiddenWindows, On
-WinGet, WindowList, List
-i=0
-Loop, %WindowList%
-{
-	If (WindowList%A_Index% != A_ScriptHwnd){
-		DetectHiddenWindows, On
-		WinGetTitle, TitleHidden, % "ahk_id " . WindowList%A_Index%
-		DetectHiddenWindows, Off
-		WinGetTitle, Title, % "ahk_id " . WindowList%A_Index%
-		if(Title != TitleHidden){
-			IfInString, TitleHidden, %searchforthisstring%
-			{
-				i++
-			}
-		}
-	}
-}
-if(i > 0){
-	msgbox Couldn't close an Instance of this script.
-	exitapp
-}
+#SingleInstance, force
+exe := StrSplit(A_ScriptName, ".")[1] ".exe"
+Process, close, %exe%
 
 ;restart with UIA if possible / helpful
 if (!A_IsAdmin && !InStr(A_AhkPath, "_UIA.exe") && !A_IsCompiled) {
 	newPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
-	if(FileExist(newPath){
+	if(FileExist(newPath)){
 		Run % StrReplace(DllCall("Kernel32\GetCommandLine", "Str"), A_AhkPath, newPath)
 		ExitApp
 	}
@@ -84,12 +44,6 @@ IniRead, toggleAutorunAdmin, taskViewEnhancerSettings.ini, temp, toggleAutorunAd
 if(toggleAutorunAdmin){
 	toggleAutorunAdmin()
 	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleAutorunAdmin
-}
-
-IniRead, noLoginChange, taskViewEnhancerSettings.ini, temp, noLoginChange, 0
-if(noLoginChange){
-	IniWrite, 0, taskViewEnhancerSettings.ini, temp, noLoginChange
-	goto noLoginChange
 }
 
 LinkFile=%A_Startup%\%A_ScriptName%
@@ -905,7 +859,7 @@ Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutosta
 
 RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 noLoginPrompt := regval = 00000000
-Gui, Add, CheckBox, x12 y384 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gnoLoginChange, Disable Login Prompt (Task View)
+Gui, Add, CheckBox, x12 y384 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gtoggleNoLogin, Disable Login Prompt (Task View)
 
 
 Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
@@ -922,6 +876,13 @@ middleY:=A_ScreenHeight/2-205
 Gui, Show, x%middleX% y%middleY% h410 w480
 
 IniWrite, 0, taskViewEnhancerSettings.ini, temp, keepOpen
+
+IniRead, toggleNoLogin, taskViewEnhancerSettings.ini, temp, toggleNoLogin, 0
+if(toggleNoLogin){
+	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleNoLogin
+	goto toggleNoLogin
+}
+
 Return
 
 kget1:
@@ -1047,7 +1008,7 @@ AutostartChanged:
 	}
 return
 
-noLoginChange:
+toggleNoLogin:
 	try{
 		if(noLoginPrompt = 1){
 			RegDelete, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
@@ -1064,13 +1025,11 @@ noLoginChange:
 		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
 		try{
 			run, *RunAs "%A_ScriptFullPath%"
-			IniWrite, 1, taskViewEnhancerSettings.ini, temp, noLoginChange
+			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleNoLogin
 			ExitApp
 		}
-		catch{
-			GuiControl, , noLoginPrompt , % noLoginPrompt
-		}
 	}
+	GuiControl, , noLoginPrompt , % noLoginPrompt
 return
 
 resetSettings:
