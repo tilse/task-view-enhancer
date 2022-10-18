@@ -53,7 +53,7 @@ if (!InStr(A_AhkPath, "_UIA.exe")) {
 			msgbox,0x40,, Installation unsuccessful, script will continue to run without UI Access.
 		}
 		else{
-			msgbox Done. You can Launch the .ahk script now.
+			msgbox Done. You can launch the .ahk script now.
 		}
 	}
 
