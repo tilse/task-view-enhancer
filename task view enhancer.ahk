@@ -1,6 +1,15 @@
 #NoEnv 
 SendMode Input
 SetWorkingDir %A_AppData%
+
+Menu, Tray, add, FULL RESET, reset
+Menu, Tray, add, Settings, settings
+Menu, Tray, Click, 1
+Menu, Tray, Default, Settings
+Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
+
+#MaxHotkeysPerInterval, 300
+
 ;better than singleinstance force because it can both close exe and ahk
 #SingleInstance, off
 DetectHiddenWindows, On
@@ -46,13 +55,14 @@ if(i > 0){
 	exitapp
 }
 
-Menu, Tray, add, FULL RESET, reset
-Menu, Tray, add, Settings, settings
-Menu, Tray, Click, 1
-Menu, Tray, Default, Settings
-Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
-
-#MaxHotkeysPerInterval, 300
+;restart with UIA if possible / helpful
+if (!A_IsAdmin && !InStr(A_AhkPath, "_UIA.exe") && !A_IsCompiled) {
+	newPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
+	if(FileExist(newPath){
+		Run % StrReplace(DllCall("Kernel32\GetCommandLine", "Str"), A_AhkPath, newPath)
+		ExitApp
+	}
+}
 
 ;----------------------------------CONFIG------------------------------------
 IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 1
