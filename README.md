@@ -37,6 +37,10 @@ A settings UI to disable any part of this
 
 No need for any installation. Just note that when the script is not running as admin, certain programs like Task Manager disable your Hotkeys while focused.
 
+(Unless you have AutoHotkey with UI Access installed)
+
+If you enable autostart with elevated privileges in the script settings, it will automatically run as admin.
+
 <br>
 <br>
 

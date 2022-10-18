@@ -9,8 +9,6 @@ Menu, Tray, Default, Settings
 Try Menu, Tray, Icon, %A_ScriptDir%\icons\tray.ico
 
 #MaxHotkeysPerInterval, 300
-
-;better than singleinstance force because it can both close exe and ahk
 #SingleInstance, force
 exe := StrSplit(A_ScriptName, ".")[1] ".exe"
 Process, close, %exe%
