@@ -2,7 +2,6 @@
 SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
-#MaxHotkeysPerInterval, 300
 
 Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, Settings, settings
@@ -251,9 +250,7 @@ showTaskGuaranteed:
 
 	WinWaitActive %taskView%,,1
 	if(ErrorLevel){
-		send {Blind}#{tab}
-		;alternative to win tab but restarts the explorer and can be slow sometimes
-		;run %A_WinDir%`\explorer.exe shell`:`:`:{3080F90E-D7AD-11D9-BD98-0000947B0257} ;this is a slower alternative to "send #{tab}", but more reliable
+		run %A_WinDir%`\explorer.exe shell`:`:`:{3080F90E-D7AD-11D9-BD98-0000947B0257} ;this is a slower alternative to "send #{tab}", but more reliable
 		WinWaitActive %taskView%,,3
 		if(ErrorLevel){
 			movedOrResized = 0
@@ -309,7 +306,6 @@ taskInput:
 Return
 
 moveWindow:
-	Hotkey, *$Shift, on
 	movedOrResized = 1
 	touchOrPen := GetKeyState(moveHK, "P") = 0
 	CoordMode, mouse, screen
@@ -333,7 +329,6 @@ moveWindow:
 
 				WinWaitNotActive, ahk_id %window%,, 2
 				if (ErrorLevel) {
-					Hotkey, *$Shift, off
 					return
 				}
 			}
@@ -347,11 +342,11 @@ moveWindow:
 		}
 		else if(GetKeyState(moveHK, "P") = 0 && !touchOrPen || touchOrPen && GetKeyState(moveHKmodifier, "P") = 0){
 			WinActivate, ahk_id %window%
-			Hotkey, *$Shift, off
 			return
 		}
 		Sleep, %loopsleep%
 	}
+	Hotkey, *$Shift, on
 
 	;get monitor bounds automatically
 	SysGet, MonitorCount, MonitorCount
@@ -575,7 +570,6 @@ moveWindow:
 return
 
 resizeWindow:
-	Hotkey, *$Shift, on
 	movedOrResized = 1
 	touchOrPen := GetKeyState(resizeHK, "P") = 0
 	CoordMode, mouse, screen
@@ -586,7 +580,6 @@ resizeWindow:
 		MouseGetPos, px2, py2
 		if(abs(px2 - px1) >= activationDistance || abs(py2 - py1) >= activationDistance){
 			if (WinActive(taskView) || WinActive(snapAssist)){
-				Hotkey, *$Shift, off
 				return
 			}
 			else {
@@ -596,12 +589,11 @@ resizeWindow:
 		}
 		else if(GetKeyState(resizeHK, "P") = 0 && !touchOrPen || touchOrPen && GetKeyState(resizeHKmodifier, "P") = 0){
 			send {%resizeHK%}
-			Hotkey, *$Shift, off
 			return
 		}
 		Sleep, %loopsleep%
 	}
-	
+	Hotkey, *$Shift, on
 	
 	;wait for window
 	Loop 20{
@@ -896,7 +888,7 @@ ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
 
-Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChange, Run at Startup
+Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChanged, Run at Startup
 
 RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 noLoginPrompt := regval = 00000000
@@ -917,6 +909,12 @@ middleY:=A_ScreenHeight/2-205
 Gui, Show, x%middleX% y%middleY% h410 w480
 
 IniWrite, 0, taskViewEnhancerSettings.ini, temp, keepOpen
+
+IniRead, toggleNoLogin, taskViewEnhancerSettings.ini, temp, toggleNoLogin, 0
+if(toggleNoLogin){
+	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleNoLogin
+	goto toggleNoLogin
+}
 
 Return
 
@@ -1021,12 +1019,12 @@ throwCustom(e){
 	return
 }
 
-AutostartChange:
+AutostartChanged:
 	If (IsAutorunEnabled()){
 		if(fileexist(LinkFile)){
 			FileDelete, %LinkFile%
 		}
-		toggleAutorun()
+		toggleAutorunAdmin()
 		autostart = 0
 	}
 	else if(fileexist(LinkFile)){
@@ -1034,42 +1032,50 @@ AutostartChange:
 		autostart = 0
 	}
 	else{
-		FileCreateShortcut, %A_ScriptFullPath%, %LinkFile% 
-		msgbox, 4,,Do you want faster Autostart? (requires Admin)
+		msgbox, 4,,Do you want faster Autostart with elevated privileges?
 		IfMsgBox, Yes
-			toggleAutorun()
+			toggleAutorunAdmin()
+		IfMsgBox, No
+			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile% 
 		autostart = 1
 	}
 return
 
 toggleNoLogin:
-	RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
-	noLoginPrompt := regval = 00000000
 	try{
 		if(noLoginPrompt = 1){
-			noLoginPrompt = 0
 			RegDelete, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
+			noLoginPrompt = 0
 			msgbox Login prompt enabled again (why?). This will take effect after a reboot.
 		}
 		else{
-			noLoginPrompt = 1
 			RegWrite, REG_DWORD, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities , 00000000
+			noLoginPrompt = 1
 			msgbox Login prompt disabled. This will take effect after a reboot.
 		}
-		exitapp
 	}
 	catch{
+		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
 		try{
+			run, *RunAs "%A_ScriptFullPath%"
 			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleNoLogin
-			runNewAdminInstance()
-			RunAs
-			;ExitApp
+			ExitApp
 		}
 	}
 	GuiControl, , noLoginPrompt , % noLoginPrompt
 return
 
-toggleAutorun(){
+resetSettings:
+	msgbox, 4,, Are you sure you want to reset ALL your settings to default?
+	IfMsgBox, Yes
+		goto reset
+return
+
+GuiClose:
+gui destroy
+return
+
+toggleAutorunAdmin(){
 	taskName = TaskViewEnhancer
 	try{
 		if(IsAutorunEnabled()){
@@ -1078,13 +1084,13 @@ toggleAutorun(){
 		else{
 			EnableAutorun(taskName, scriptPath)
 		}
-		exitapp
 	}
 	Catch{
+		IniWrite, 1, taskViewEnhancerSettings.ini, temp, keepOpen
 		try{
-			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleAutorun
-			runNewAdminInstance()
-			;ExitApp
+			run, *RunAs "%A_ScriptFullPath%"
+			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleAutorunAdmin
+			ExitApp
 		}
 		catch{
 			LinkFile=%A_Startup%\%A_ScriptName%
@@ -1136,18 +1142,14 @@ EnableAutorun(taskName, path)
 	colActions := objTaskDefinition.Actions 
 	objAction := colActions.Create(ActionTypeExec) 
 	objAction.ID := taskName
-
-	uiaPath := A_AhkPath
-	if (!InStr(A_AhkPath, "_UIA.exe")) {
-		uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
-	}
+	runThisArgument = %tempDir%\task view enhancer.ahk
 	if(InStr(runThisArgument, .exe))
 		objAction.Path := """"  path """"
 	else
 	{
-		runThisArgument = %A_ScriptFullPath%
-		objAction.Path := """" uiaPath """"
-		objAction.Arguments := """" A_ScriptFullPath """"
+		runThisArgument = %tempDir%\task view enhancer.ahk
+		objAction.Path := """" A_AhkPath """"
+		objAction.Arguments := """" runThisArgument """"
 	}
 	objAction.WorkingDirectory := tempDir
 	objInfo := objTaskDefinition.RegistrationInfo 
@@ -1170,17 +1172,6 @@ DisableAutorun(taskName)
 	objFolder := objService.GetFolder("\")
 	objFolder.DeleteTask(taskName, 0)
 }
-
-resetSettings:
-	msgbox, 4,, Are you sure you want to reset ALL your settings to default?
-	IfMsgBox, Yes
-		goto reset
-return
-
-GuiClose:
-if(A_IsAdmin)
-gui destroy
-return
 
 getIndex(haystack, needle) {
 	if !(IsObject(haystack)) || (haystack.Length() = 0)
@@ -1221,12 +1212,6 @@ getAnyInput(timeoutMs := 0){
     
 }
 
-runNewAdminInstance(){
-	FileCopy, %A_ScriptFullPath%, %A_Temp%\%A_ScriptName%, 1
-	RunWait, *RunAs %A_Temp%\%A_ScriptName%
-	FileDelete, %A_Temp%\%A_ScriptName%
-}
-
 reset:
 	FileDelete, taskViewEnhancerSettings.ini
 
@@ -1239,7 +1224,7 @@ reset:
 		if(fileexist(LinkFile)){
 			FileDelete, %LinkFile%
 		}
-		toggleAutorun()
+		toggleAutorunAdmin()
 	}
 	else if(fileexist(LinkFile)){
 		FileDelete, %LinkFile%
