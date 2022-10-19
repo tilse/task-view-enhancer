@@ -2,6 +2,7 @@
 SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
+#MaxHotkeysPerInterval, 300
 
 Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, Settings, settings
@@ -16,7 +17,8 @@ if(toggleNoLogin){
 }
 
 IniRead, toggleAutorun, taskViewEnhancerSettings.ini, temp, toggleAutorun, 0
-if(toggleAutorun != 0){
+if(toggleAutorun){
+	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleAutorun
 	toggleAutorun()
 }
 
@@ -1068,8 +1070,6 @@ toggleNoLogin:
 return
 
 toggleAutorun(){
-	IniRead, scriptPath, taskViewEnhancerSettings.ini, temp, toggleAutorun
-	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleAutorun
 	taskName = TaskViewEnhancer
 	try{
 		if(IsAutorunEnabled()){
@@ -1082,7 +1082,7 @@ toggleAutorun(){
 	}
 	Catch{
 		try{
-			IniWrite, %A_ScriptFullPath%, taskViewEnhancerSettings.ini, temp, toggleAutorun
+			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleAutorun
 			runNewAdminInstance()
 			;ExitApp
 		}
@@ -1137,16 +1137,17 @@ EnableAutorun(taskName, path)
 	objAction := colActions.Create(ActionTypeExec) 
 	objAction.ID := taskName
 
+	uiaPath := A_AhkPath
+	if (!InStr(A_AhkPath, "_UIA.exe")) {
+		uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
+	}
 	if(InStr(runThisArgument, .exe))
 		objAction.Path := """"  path """"
 	else
 	{
-		uiaPath := A_AhkPath
-		if (!InStr(A_AhkPath, "_UIA.exe")) {
-			uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
-		}
+		runThisArgument = %A_ScriptFullPath%
 		objAction.Path := """" uiaPath """"
-		objAction.Arguments := """" path """"
+		objAction.Arguments := """" A_ScriptFullPath """"
 	}
 	objAction.WorkingDirectory := tempDir
 	objInfo := objTaskDefinition.RegistrationInfo 
