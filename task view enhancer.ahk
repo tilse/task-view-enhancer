@@ -1064,7 +1064,12 @@ AutostartChange:
 			if (!InStr(A_AhkPath, "_UIA.exe")) {
 				uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
 			}
-			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
+			if(FileExist(A_ScriptDir "\icons\tray.ico")){
+				FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
+			}
+			else{
+				FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """"
+			}
 		}
 		else{
 			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile%, 
