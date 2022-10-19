@@ -1019,27 +1019,6 @@ throwCustom(e){
 	return
 }
 
-AutostartChange:
-	If (IsAutorunEnabled()){
-		if(fileexist(LinkFile)){
-			FileDelete, %LinkFile%
-		}
-		toggleAutorun()
-		autostart = 0
-	}
-	else if(fileexist(LinkFile)){
-		FileDelete, %LinkFile%
-		autostart = 0
-	}
-	else{
-		FileCreateShortcut, %A_ScriptFullPath%, %LinkFile% 
-		msgbox, 4,,Do you want faster Autostart? (requires Admin)
-		IfMsgBox, Yes
-			toggleAutorun()
-		autostart = 1
-	}
-return
-
 toggleNoLogin:
 	RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 	noLoginPrompt := regval = 00000000
@@ -1065,6 +1044,36 @@ toggleNoLogin:
 		}
 	}
 	GuiControl, , noLoginPrompt , % noLoginPrompt
+return
+
+AutostartChange:
+	If (IsAutorunEnabled()){
+		if(fileexist(LinkFile)){
+			FileDelete, %LinkFile%
+		}
+		toggleAutorun()
+		autostart = 0
+	}
+	else if(fileexist(LinkFile)){
+		FileDelete, %LinkFile%
+		autostart = 0
+	}
+	else{
+		if(!A_IsCompiled){
+			uiaPath := A_AhkPath
+			if (!InStr(A_AhkPath, "_UIA.exe")) {
+				uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
+			}
+			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """"
+		}
+		else{
+			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile% 
+		}
+		msgbox, 4,,Do you want faster Autostart? (requires Admin)
+		IfMsgBox, Yes
+			toggleAutorun()
+		autostart = 1
+	}
 return
 
 toggleAutorun(){
