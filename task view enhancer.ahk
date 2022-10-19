@@ -1064,10 +1064,10 @@ AutostartChange:
 			if (!InStr(A_AhkPath, "_UIA.exe")) {
 				uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
 			}
-			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """"
+			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
 		}
 		else{
-			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile% 
+			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile%, 
 		}
 		msgbox, 4,,Do you want faster Autostart? (requires Admin)
 		IfMsgBox, Yes
