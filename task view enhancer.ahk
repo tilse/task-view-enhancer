@@ -960,7 +960,7 @@ kget(source, target){
     
 	key := getAnyInput(6000)
 	if(ErrorLevel != "Timeout"){
-		GuiControl,,% target ,|%key%||
+		GuiControl,,% target ,%key%||
 	}
 	
     GuiControl,, %source% , Input
