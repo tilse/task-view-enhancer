@@ -3,8 +3,6 @@ SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
 
-WinHide, WTWindows
-
 Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
