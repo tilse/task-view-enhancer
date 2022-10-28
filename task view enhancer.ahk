@@ -851,28 +851,28 @@ Gui, Add, GroupBox, x2 y67 w470 h68
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
 Gui, Add, Text, x12 y49 w150 h20 , Remap Task View:
-Gui, Add, Edit, x192 y49 w110 h20 vTHK r1, %taskHK_%
+Gui, Add, ComboBox, x192 y49 w110 h20 vTHK r4 Choose4, %taskHK_%|~LWin|~RWin|LAlt & Tab
 Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
 Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
 
 Gui, Add, Link, x370 y10 w100 h14, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">AutoHotkey Syntax</a>
 
 Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
-Gui, Add, Edit, x192 y79 w110 h20 vMHKM r1, %moveHKmodifier_%
+Gui, Add, ComboBox, x192 y79 w110 h20 vMHKM r7 Choose1, %moveHKmodifier_%|LWin|RWin|LAlt|RAlt|LCtrl|RCtrl
 Gui, Add, Button, x312 y79 w50 h20 vbut2 gkget2, Input
 Gui, Add, CheckBox, x372 y89 w90 h30 venableMHK Checked%moveHKOn%, Enabled
 
 Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
-Gui, Add, Edit, x192 y109 w110 h20 vMHK r1, %moveHK%
+Gui, Add, ComboBox, x192 y109 w110 h20 vMHK r4 Choose1, %moveHK%|LButton|RButton|MButton
 Gui, Add, Button, x312 y109 w50 h20 vbut3 gkget3, Input
 
 Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
-Gui, Add, Edit, x192 y139 w110 h20 vRHKM r1, %resizeHKmodifier_%
+Gui, Add, ComboBox, x192 y139 w110 h20 vRHKM r7 Choose1, %resizeHKmodifier_%|LWin|RWin|LAlt|RAlt|LCtrl|RCtrl
 Gui, Add, Button, x312 y139 w50 h20 vbut4 gkget4, Input
 Gui, Add, CheckBox, x372 y149 w90 h30 venableRHK Checked%resizeHKOn%, Enabled
 
 Gui, Add, Text, x12 y169 w150 h20 , Resize windows (main key):
-Gui, Add, Edit, x192 y169 w110 h20 vRHK r1, %resizeHK%
+Gui, Add, ComboBox, x192 y169 w110 h20 vRHK r4 Choose1, %resizeHK%|LButton|RButton|MButton
 Gui, Add, Button, x312 y169 w50 h20 vbut5 gkget5, Input
 
 
