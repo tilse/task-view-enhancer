@@ -3,6 +3,8 @@ SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
 
+WinHide, WTWindows
+
 Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
@@ -219,7 +221,7 @@ showTaskGuaranteed:
 	keywait, %taskHK%
 	
 	;cancel if a different key got pressed while win was held down
-	if (A_PriorKey != taskHK || movedOrResized) {
+	if (A_PriorKey != taskHK && instr(taskHK_, "~") || movedOrResized) {
 		movedOrResized = 0
 		SetTimer, taskInput, on
 		return
@@ -284,7 +286,7 @@ taskInput:
 
 	ignored := ["LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
 	
-	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0){
+	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0 || key = taskHK){
 		if (key = taskHK) { 
 			if (WinActive(taskView)){
 				keywait, %taskHK%
