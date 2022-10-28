@@ -3,9 +3,8 @@ SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
 
-WinHide, WTWindows
-
 Menu, Tray, add, FULL RESET, reset
+Menu, Tray, add, AHK installer, install
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
 Menu, Tray, Default, Settings
@@ -37,19 +36,16 @@ if (!InStr(A_AhkPath, "_UIA.exe")) {
 		msgbox,1,,No installation of AutoHotkey with UI Access detected. Install it? If you  just want to try this out, select Cancel.
 		IfMsgBox, Cancel
 		{
-			msgbox, 4,, Do you want to stop being asked?
+			msgbox, 4,, Do you want to stop being asked? You can get this warning back by doing a FULL RESET (in the tray menu).
 			IfMsgBox, Yes
 				IniWrite, 1, taskViewEnhancerSettings.ini, temp, noInstall
 			goto cancelInstall
 		}
 
 		msgbox Please make sure you select "Add 'Run with UI Access' to context menus" in the installer.
-		Progress, H80, , Downloading..., ahk-install.exe Download
-		Progress, 90 ;this doesn't tell you anything hahaha
-		UrlDownloadToFile, https://www.autohotkey.com/download/ahk-install.exe, %A_Temp%\ahk-install.exe
-		cmd := "ahk-install.exe & del ahk-install.exe"
-		progress off
-		RunWait % A_ComSpec " /C """ cmd """", % A_Temp, hide
+		
+		install()
+
 		if(!FileExist(newPath)){
 			msgbox,0x40,, Installation unsuccessful, script will continue to run without UI Access.
 		}
@@ -1274,6 +1270,20 @@ reset:
 	}
 	Reload
 return
+
+install(){
+	Progress, H80, , Downloading..., ahk-install.exe Download
+	Progress, 90 ;this doesn't tell you anything hahaha
+	UrlDownloadToFile, https://www.autohotkey.com/download/ahk-install.exe, %A_Temp%\ahk-install.exe
+	cmd := "ahk-install.exe & del ahk-install.exe"
+	progress off
+	Run % A_ComSpec " /C """ cmd """", % A_Temp
+	WinWaitActive, ahk_exe cmd.exe, , 1
+	WinHide, ahk_exe cmd.exe
+	DetectHiddenWindows, on
+	WinWaitClose, % ahk_exe cmd.exe
+	DetectHiddenWindows, off
+}
 
 ;unused but i like this function
 folderUp(path){
