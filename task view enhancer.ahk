@@ -3,6 +3,8 @@ SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
 
+WinHide, WTWindows
+
 Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, Settings, settings
 Menu, Tray, Click, 1
@@ -77,6 +79,7 @@ IniRead, activationDistance, taskViewEnhancerSettings.ini, settings, activationD
 IniRead, snapping, taskViewEnhancerSettings.ini, settings, snapping, 1
 IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
 IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, maximize
+IniRead, enableSearch, taskViewEnhancerSettings.ini, settings, enableSearch, 1
 
 LinkFile=%A_Startup%\%nameNoExt%.lnk
 autostart := IsAutorunEnabled() || fileexist(LinkFile)
@@ -223,6 +226,7 @@ showTaskGuaranteed:
 		SetTimer, taskInput, on
 		return
 	}
+	temp:=A_PriorHotKey
 
 	if(taskHK_ = "~LWin" || taskHK_ = "~RWin"){
 		WinWaitActive %search%,,1
@@ -266,6 +270,9 @@ showTaskGuaranteed:
 
 ;this is what the timer triggers
 taskInput:
+	if(!enableSearch){
+		return
+	}
 	if(!fromhk){
 		if (!WinActive(taskView) ){
 			return
@@ -845,93 +852,109 @@ IDC_HELP := 32651
 ;---------------------------------TASK VIEW + WINDOW DRAG END---------------------------------
 
 settings:
-Gui, settings2:new
+Gui, settings:new
 
 Gui, Add, GroupBox, x2 y67 w470 h68 
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
 Gui, Add, Text, x12 y49 w150 h20 , Remap Task View:
-Gui, Add, ComboBox, x192 y49 w110 h20 vTHK r4 Choose4, %taskHK_%|~LWin|~RWin|LAlt & Tab
+Gui, Add, ComboBox, x192 y49 w110 h20 vTHK r4, %taskHK_%||~LWin|~RWin|LAlt & Tab
 Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
 Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
 
 Gui, Add, Link, x370 y10 w100 h14, <a href="https://www.autohotkey.com/docs/Hotkeys.htm">AutoHotkey Syntax</a>
 
 Gui, Add, Text, x12 y79 w150 h20 , Move windows (modifier):
-Gui, Add, ComboBox, x192 y79 w110 h20 vMHKM r7 Choose1, %moveHKmodifier_%|LWin|RWin|LAlt|RAlt|LCtrl|RCtrl
+Gui, Add, ComboBox, x192 y79 w110 h20 vMHKM r7 , %moveHKmodifier_%||LWin|RWin|LAlt|RAlt|LCtrl|RCtrl
 Gui, Add, Button, x312 y79 w50 h20 vbut2 gkget2, Input
 Gui, Add, CheckBox, x372 y89 w90 h30 venableMHK Checked%moveHKOn%, Enabled
 
 Gui, Add, Text, x12 y109 w150 h20 , Move windows (main key):
-Gui, Add, ComboBox, x192 y109 w110 h20 vMHK r4 Choose1, %moveHK%|LButton|RButton|MButton
+Gui, Add, ComboBox, x192 y109 w110 h20 vMHK r4 Choose1, %moveHK%||LButton|RButton|MButton
 Gui, Add, Button, x312 y109 w50 h20 vbut3 gkget3, Input
 
 Gui, Add, Text, x12 y139 w150 h20 , Resize windows (modifier):
-Gui, Add, ComboBox, x192 y139 w110 h20 vRHKM r7 Choose1, %resizeHKmodifier_%|LWin|RWin|LAlt|RAlt|LCtrl|RCtrl
+Gui, Add, ComboBox, x192 y139 w110 h20 vRHKM r7 , %resizeHKmodifier_%||LWin|RWin|LAlt|RAlt|LCtrl|RCtrl
 Gui, Add, Button, x312 y139 w50 h20 vbut4 gkget4, Input
 Gui, Add, CheckBox, x372 y149 w90 h30 venableRHK Checked%resizeHKOn%, Enabled
 
 Gui, Add, Text, x12 y169 w150 h20 , Resize windows (main key):
-Gui, Add, ComboBox, x192 y169 w110 h20 vRHK r4 Choose1, %resizeHK%|LButton|RButton|MButton
+Gui, Add, ComboBox, x192 y169 w110 h20 vRHK r4 , %resizeHK%||LButton|RButton|MButton
 Gui, Add, Button, x312 y169 w50 h20 vbut5 gkget5, Input
 
 
-Gui, Add, GroupBox, x2 y209 w470 h150 , Other Settings
+Gui, Add, GroupBox, x2 y209 w470 h180 , Other Settings
 
-Gui, Add, Text, x12 y239 w170 h20 , Cursor Distance for Activation (px):
-Gui, Add, Slider, x184 y234 w176 h30 vdist ToolTip gUpdateDistBuddy, %activationDistance%
-Gui, Add, Edit, x365 y234 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
+Gui, Add, Text, x12 y239 w170 h20 , Type in task view to search:
+Gui, Add, CheckBox, x192 y237 w100 h20 venableSearch Checked%enableSearch%, Enabled
 
-Gui, Add, Text, x12 y269 w170 h20 , Snapping:
-Gui, Add, CheckBox, x192 y269 w100 h20 venableSnap Checked%snapping%, Enabled
+Gui, Add, Text, x12 y269 w170 h20 , Cursor Distance for Activation (px):
+Gui, Add, Slider, x184 y262 w176 h30 vdist ToolTip gUpdateDistBuddy, %activationDistance%
+Gui, Add, Edit, x365 y262 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
 
-Gui, Add, Text, x12 y299 w170 h20 , Snap border width (px):
-Gui, Add, Slider, x184 y294 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
-Gui, Add, Edit, x365 y294 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
+Gui, Add, Text, x12 y299 w170 h20 , Snapping:
+Gui, Add, CheckBox, x192 y297 w100 h20 venableSnap Checked%snapping%, Enabled
 
-Gui, Add, Text, x12 y329 w170 h20 , Bottom screen edge behavior:
+Gui, Add, Text, x12 y329 w170 h20 , Snap border width (px):
+Gui, Add, Slider, x184 y322 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
+Gui, Add, Edit, x365 y322 w30 h20 vborderBuddy gUpdateborderSlider,%borderwidth%
+
+Gui, Add, Text, x12 y359 w170 h20 , Bottom screen edge behavior:
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
-Gui, Add, DDL, x192 y329 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
+Gui, Add, DDL, x192 y357 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
 
-Gui, Add, CheckBox, x12 y364 w180 h20 venableStartup Checked%autostart% gAutostartChange, Run at Startup
+Gui, Add, CheckBox, x12 y394 w180 h20 venableStartup Checked%autostart% gAutostartChange, Run at Startup
 
 RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 noLoginPrompt := regval = 00000000
-Gui, Add, CheckBox, x12 y384 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gtoggleNoLogin, Disable Login Prompt (Task View)
+Gui, Add, CheckBox, x12 y414 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gtoggleNoLogin, Disable Login Prompt (Task View)
 
 
-Gui, Add, Button, x238 y369 w60 h30 gSetHKs default, OK
-Gui, Add, Button, x303 y369 w80 h30 gapply , Apply
-Gui, Add, Button, x388 y369 w80 h30 gresetSettings, Reset
+Gui, Add, Button, x238 y399 w60 h30 gSetHKs default, OK
+Gui, Add, Button, x303 y399 w80 h30 gapply , Apply
+Gui, Add, Button, x388 y399 w80 h30 gresetSettings, Reset
 
 gui Font, s20
 Gui, Add, Text, x500 y205 w170 h80 , Hi :3
-Gui, Add, Text, x100 y430 w300 h80 , Yahaha, you found me!
+Gui, Add, Text, x100 y450 w300 h80 , Yahaha, you found me!
 ; Generated using SmartGUI Creator 4.0
 
 middleX:=A_ScreenWidth/2-240
 middleY:=A_ScreenHeight/2-205
-Gui, Show, x%middleX% y%middleY% h410 w480
+Gui, Show, x%middleX% y%middleY% h440 w480
 
 IniWrite, 0, taskViewEnhancerSettings.ini, temp, keepOpen
-
 Return
 
+GuiClose:
+gui destroy
+return
+
 kget1:
+	Try Hotkey, %taskHK_%, off
     kget("but1", "THK")
+	Try Hotkey, %taskHK_%, on
 return
 kget2:
+	Try Hotkey, %taskHK_%, off
     kget("but2", "MHKM")
+	Try Hotkey, %taskHK_%, on
 return
 kget3:
+	Try Hotkey, %taskHK_%, off
     kget("but3", "MHK")
+	Try Hotkey, %taskHK_%, on
 return
 kget4:
+	Try Hotkey, %taskHK_%, off
     kget("but4", "RHKM")
+	Try Hotkey, %taskHK_%, on
 return
 kget5:
+	Try Hotkey, %taskHK_%, off
     kget("but5", "RHK")
+	Try Hotkey, %taskHK_%, on
 return
 
 kget(source, target){
@@ -939,7 +962,7 @@ kget(source, target){
     
 	key := getAnyInput(6000)
 	if(ErrorLevel != "Timeout"){
-		GuiControl,,% target ,% key
+		GuiControl,,% target ,|%key%||
 	}
 	
     GuiControl,, %source% , Input
@@ -983,6 +1006,7 @@ SetHKs:
     GuiControlGet, snapping,, enableSnap
     GuiControlGet, borderwidth,, borderBuddy
     GuiControlGet, bottomBehavior,, botedge
+    GuiControlGet, enableSearch,, enableSearch
 
 	if(moveHKmodifier_=""||resizeHKmodifier_=""){
 		throwCustom("Hotkey modifiers need to be set.")
@@ -1010,6 +1034,7 @@ SetHKs:
 	IniWrite, %snapping%, taskViewEnhancerSettings.ini, settings, snapping
 	IniWrite, %borderwidth%, taskViewEnhancerSettings.ini, settings, borderwidth
 	IniWrite, %bottomBehavior%, taskViewEnhancerSettings.ini, settings, bottomBehavior
+	IniWrite, %enableSearch%, taskViewEnhancerSettings.ini, settings, enableSearch
 
 	Reload
 Return
@@ -1064,12 +1089,7 @@ AutostartChange:
 			if (!InStr(A_AhkPath, "_UIA.exe")) {
 				uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
 			}
-			if(FileExist(A_ScriptDir "\icons\tray.ico")){
-				FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
-			}
-			else{
-				FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """"
-			}
+			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
 		}
 		else{
 			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile%, 
@@ -1188,11 +1208,6 @@ resetSettings:
 	msgbox, 4,, Are you sure you want to reset ALL your settings to default?
 	IfMsgBox, Yes
 		goto reset
-return
-
-GuiClose:
-if(A_IsAdmin)
-gui destroy
 return
 
 getIndex(haystack, needle) {
