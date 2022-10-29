@@ -332,7 +332,14 @@ moveWindow:
 				}
 				else click
 
-				WinWaitNotActive, ahk_id %window%,, 2
+				ErrorLevel=1
+				loop 100{
+					if (!WinActive(taskView) && !WinActive(snapAssist)){
+						ErrorLevel=0
+						break
+					}
+					sleep % loopsleep
+				}
 				if (ErrorLevel) {
 					Hotkey, *$Shift, off
 					return
