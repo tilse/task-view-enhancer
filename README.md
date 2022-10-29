@@ -17,6 +17,7 @@ This Script works similarly to AltDrag, so here are some features in this script
 - When moving windows to the side, the windows snap assist appears / no gaps here
 - A few less features like always on top (I recommend PowerToys for that)
 - Should work with any monitor layout / High DPI / whatever out of the box
+- Dragging Windows from task view is possible
 - Works with AutoHotkey UI Access instead of administrator permissions
 - Active development, taking feature requests
 
