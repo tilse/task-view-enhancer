@@ -349,7 +349,7 @@ moveWindow:
 				if WinActive(search){
 					send {esc}
 				}
-				WinActivate, ahk_id %window%
+				send {%moveHK%}
 			}
 			break
 		}
@@ -1021,6 +1021,11 @@ SetHKs:
 	}
 	if(moveHK != getKeyFromHotkey(moveHK) || resizeHK != getKeyFromHotkey(resizeHK)){
 		throwCustom("Please only specify a single key as the main key.")
+		return
+	}
+	dangerous = ["LButton", "RButton", "Enter", "Left", "Right", "Up", "Down"]
+	if(getIndex(dangerous, moveHKmodifier_) != 0 || getIndex(dangerous, resizeHKmodifier_) != 0 || getIndex(dangerous, taskHK_) != 0 ||moveHK=moveHKmodifier_||resizeHK=resizeHKmodifier_){
+		throwCustom("This Hotkey could be dangerous. Please select a different one.")
 		return
 	}
 
