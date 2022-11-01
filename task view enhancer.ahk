@@ -185,6 +185,20 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 
 movedOrResized = 0
 
+IniRead, program1, taskViewEnhancerSettings.ini, resize_calibration, program1
+if(program1 = "ERROR"){
+	IniWrite, chrome.exe, taskViewEnhancerSettings.ini, resize_calibration, program1
+	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program1border
+	IniWrite, firefox.exe, taskViewEnhancerSettings.ini, resize_calibration, program2
+	IniWrite, 6, taskViewEnhancerSettings.ini, resize_calibration, program2border
+	IniWrite, msedge.exe, taskViewEnhancerSettings.ini, resize_calibration, program3
+	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program3border
+	IniWrite, Explorer.EXE, taskViewEnhancerSettings.ini, resize_calibration, program4
+	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program4border
+	IniWrite, ApplicationFrameHost.exe, taskViewEnhancerSettings.ini, resize_calibration, program5
+	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program5border
+}
+
 IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
 if(keepOpen){
 	goto settings
@@ -1341,13 +1355,17 @@ SysGet, resizeborderW, 33
 sysborder := resizeborderW
 loop{
 	IniRead, program%A_index%, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
+	if(program%A_index% = "ERROR"){
+		program_border := "unset"
+		break
+	}
 	if(program%A_index% = program){
 		IniRead, program_border, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%border
 		resizeborderW := program_border
 		break
 	}
 }
-InputBox, inbox, Calibration for %program%, Border width (px) `nWill be applied to right left and bottom.`nSet to 0 or blank to reset.`nSuggested: 0-%sysborder% , , , , , , , , %resizeborderW%
+InputBox, inbox, Calibration for %program%, Border width (px) `nWill be applied to right left and bottom.`nSet to 0 or blank to reset.`nSuggested: 0-%sysborder%`nCurrently %program_border% , , , , , , , , %resizeborderW%
 if(!ErrorLevel){
 	if(inbox = ""){
 		inbox = 0
