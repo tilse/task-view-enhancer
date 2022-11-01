@@ -1134,12 +1134,11 @@ AutostartChange:
 			}
 			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
 		}
-		else{
-			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile%, 
-		}
 		msgbox, 4,,Do you want faster Autostart? (requires Admin)
 		IfMsgBox, Yes
 			toggleAutorun()
+		IfMsgBox, No
+			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile%
 		autostart = 1
 	}
 return
@@ -1191,7 +1190,6 @@ EnableAutorun(taskName, path)
 	if(IsAutorunEnabled())
 		return
 	
-	
 	;https://learn.microsoft.com/en-us/windows/win32/api/taskschd/ne-taskschd-task_trigger_type2
 	TriggerType = 9   ; trigger on logon. 
 	ActionTypeExec = 0  ; specifies an executable action. 
@@ -1204,9 +1202,12 @@ EnableAutorun(taskName, path)
 	objFolder := objService.GetFolder("\") 
 	objTaskDefinition := objService.NewTask(0) 
 
-	;principal := objTaskDefinition.Principal 
-	;principal.LogonType := 1    ; Set the logon type to TASK_LOGON_PASSWORD 
-	;principal.RunLevel := Task_Runlevel_Highest  ; Tasks will be run with the highest privileges. 
+	if(A_IsCompiled){
+		;start as admin
+		principal := objTaskDefinition.Principal 
+		principal.LogonType := 1    ; Set the logon type to TASK_LOGON_PASSWORD 
+		principal.RunLevel := Task_Runlevel_Highest  ; Tasks will be run with the highest privileges. 
+	}
 
 	colTasks := objTaskDefinition.Triggers 
 	objTrigger := colTasks.Create(TriggerType) 
@@ -1214,8 +1215,8 @@ EnableAutorun(taskName, path)
 	objAction := colActions.Create(ActionTypeExec) 
 	objAction.ID := taskName
 
-	if(InStr(runThisArgument, .exe))
-		objAction.Path := """"  path """"
+	if(A_IsCompiled)
+		objAction.Path := """" path """"
 	else
 	{
 		uiaPath := A_AhkPath
