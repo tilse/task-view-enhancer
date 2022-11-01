@@ -3,6 +3,7 @@ SendMode Input
 SetWorkingDir %A_AppData%
 #MaxHotkeysPerInterval, 300
 
+Menu, Tray, add, calibrate resize snapping, resize_calibrate
 Menu, Tray, add, FULL RESET, reset
 Menu, Tray, add, AHK installer, install
 Menu, Tray, add, Settings, settings
@@ -688,6 +689,25 @@ resizeWindow:
 		mon%A_Index%Bottom 	+= borderwidth*(RD+LD-RU-LU)
 	}
 
+	WinGet, program, ProcessName , %moveWin%
+	loop{
+		IniRead, program_match, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
+		if(program_match = "ERROR"){
+			break
+		}
+		IniRead, program_border, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%border
+		if(program_match = program){
+			Loop, % MonitorCount
+			{
+				;offset work area for snap checks so it snaps without the resize border
+				mon%A_Index%workLeft 	-= program_border
+				mon%A_Index%workRight	+= program_border
+				;mon%A_Index%workTop	-= program_border
+				mon%A_Index%workBottom 	+= program_border
+			}
+		}
+	}
+
 	if(winMax1){
 		Loop, % MonitorCount{
 			if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
@@ -896,7 +916,8 @@ Gui, Add, Slider, x184 y262 w176 h30 vdist ToolTip gUpdateDistBuddy, %activation
 Gui, Add, Edit, x365 y262 w30 h20 vdistBuddy gUpdateDistSlider,%activationDistance%
 
 Gui, Add, Text, x12 y299 w170 h20 , Snapping:
-Gui, Add, CheckBox, x192 y297 w100 h20 venableSnap Checked%snapping%, Enabled
+Gui, Add, CheckBox, x192 y297 w60 h20 venableSnap Checked%snapping%, Enabled
+Gui, Add, Button, x280 y297 w73 h20 gresize_calibrate, Calibrate
 
 Gui, Add, Text, x12 y329 w170 h20 , Snap border width (px):
 Gui, Add, Slider, x184 y322 w176 h28 vborder ToolTip gUpdateborderBuddy, %borderwidth%
@@ -1301,3 +1322,51 @@ install(){
 folderUp(path){
 	return RegExReplace(path,"[^\\]+\\?$")
 }
+
+resize_calibrate:
+tooltip, select a window to calibrate resize edges for (esc to cancel)
+Hotkey, LButton, rescal
+hotkey, esc, rescalquit
+Hotkey, LButton, on
+hotkey, esc, on
+return
+
+rescal:
+tooltip
+Hotkey, LButton, off
+hotkey, esc, off
+MouseGetPos, x, y, win
+WinGet, program, ProcessName , ahk_id %win%
+SysGet, resizeborderW, 33
+sysborder := resizeborderW
+loop{
+	IniRead, program%A_index%, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
+	if(program%A_index% = program){
+		IniRead, program_border, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%border
+		resizeborderW := program_border
+		break
+	}
+}
+InputBox, inbox, Calibration for %program%, Border width (px) `nWill be applied to right left and bottom.`nSet to 0 or blank to reset.`nSuggested: 0-%sysborder% , , , , , , , , %resizeborderW%
+if(!ErrorLevel){
+	if(inbox = ""){
+		inbox = 0
+	}
+	loop{
+		IniRead, program%A_index%, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
+		if(program%A_index% = "ERROR" || program%A_index% = program){
+			insertPos := A_Index
+			break
+		}
+	}
+	IniWrite, % program, taskViewEnhancerSettings.ini, resize_calibration, program%insertPos%
+	IniWrite, % inbox, taskViewEnhancerSettings.ini, resize_calibration, program%insertPos%border
+}
+return
+
+
+rescalquit:
+tooltip
+Hotkey, LButton, off
+hotkey, esc, off
+return
