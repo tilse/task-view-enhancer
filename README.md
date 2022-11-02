@@ -68,15 +68,13 @@ https://www.autohotkey.com/
 
 To adjust some other settings after the initial startup, click the task tray icon.
 
-<img src="https://user-images.githubusercontent.com/59397795/196289837-072edea9-550e-4df1-ba8f-f562de745ebf.png" height="400">
+<img src="https://user-images.githubusercontent.com/59397795/199568200-9b0ea82a-61d0-4c5a-affc-c2855121dc1c.png" height="400">
 
 <br>
 
 <h3>Autostart</h3>
 
-Use the settings checkbox "Run at startup". You will be asked what startup mode you want.
-
-Faster startup runs the script with Task Scheduler at logon, which is slightly faster than the normal startup folder, which the script will be started though anyway.
+Use the settings checkbox "Run at startup".
 
 <br>
 
@@ -86,3 +84,9 @@ To disable the Microsoft account login prompt in task view you get when you're u
 
 <br>
 
+<h3>Calibration</h3>
+
+Resizing can be a bit inconsistent because programs like to report their window sizes differently. That's why you can calibrate an offset per program through the calibrate button in the settings or via right click on the tray icon.
+If you notice an offset, it is recommended you use the value that first appears when you try to calibrate, but you might need to fine tune it.
+
+<img src="https://user-images.githubusercontent.com/59397795/199568391-84d39ba8-8b9c-4553-886f-305b9af105ce.png" height="200">

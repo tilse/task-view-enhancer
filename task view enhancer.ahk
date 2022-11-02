@@ -17,11 +17,6 @@ if(toggleNoLogin){
 	goto toggleNoLogin
 }
 
-IniRead, toggleAutorun, taskViewEnhancerSettings.ini, temp, toggleAutorun, 0
-if(toggleAutorun != 0){
-	toggleAutorun()
-}
-
 #SingleInstance, force
 nameNoExt := StrSplit(A_ScriptName, ".")[1]
 if(!A_IsCompiled){
@@ -78,8 +73,8 @@ IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
 IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, maximize
 IniRead, enableSearch, taskViewEnhancerSettings.ini, settings, enableSearch, 1
 
-LinkFile=%A_Startup%\%nameNoExt%.lnk
-autostart := IsAutorunEnabled() || fileexist(LinkFile)
+RegRead, startupcmd, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer
+autostart := startupcmd != ""
 
 ;important for key state checks
 taskHK := getKeyFromHotkey(taskHK_)
@@ -187,16 +182,17 @@ movedOrResized = 0
 
 IniRead, program1, taskViewEnhancerSettings.ini, resize_calibration, program1
 if(program1 = "ERROR"){
+	sysget, b, 33
 	IniWrite, chrome.exe, taskViewEnhancerSettings.ini, resize_calibration, program1
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program1border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program1border
 	IniWrite, firefox.exe, taskViewEnhancerSettings.ini, resize_calibration, program2
-	IniWrite, 6, taskViewEnhancerSettings.ini, resize_calibration, program2border
+	IniWrite, % b-3, taskViewEnhancerSettings.ini, resize_calibration, program2border
 	IniWrite, msedge.exe, taskViewEnhancerSettings.ini, resize_calibration, program3
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program3border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program3border
 	IniWrite, Explorer.EXE, taskViewEnhancerSettings.ini, resize_calibration, program4
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program4border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program4border
 	IniWrite, ApplicationFrameHost.exe, taskViewEnhancerSettings.ini, resize_calibration, program5
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program5border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program5border
 }
 
 IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
@@ -237,7 +233,6 @@ showTaskGuaranteed:
 		SetTimer, taskInput, on
 		return
 	}
-	temp:=A_PriorHotKey
 
 	if(taskHK_ = "~LWin" || taskHK_ = "~RWin"){
 		WinWaitActive %search%,,1
@@ -295,7 +290,7 @@ taskInput:
 	;wait for 1 key press
 	key := getAnyInput(3000) ;this function is at the bottom of the script
 
-	ignored := ["LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
+	ignored := ["Escape", "Enter", "Tab", "LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
 	
 	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0 || key = taskHK){
 		if (key = taskHK) { 
@@ -312,12 +307,10 @@ taskInput:
 			}
 		}
 		else if (WinActive(taskView)){ 
-			if (key != "Esc" && key != "Enter" && key != "Tab") {
-				;open search
-				send #s
-				WinWaitActive %search%,,1
-				send {%key%}
-			}
+			;open search
+			send #s 
+			sleep 1
+			send {%key%}
 		}
 	}
 	movedOrResized = 0
@@ -942,7 +935,7 @@ ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y357 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
 
-Gui, Add, CheckBox, x12 y394 w180 h20 venableStartup Checked%autostart% gAutostartChange, Run at Startup
+Gui, Add, CheckBox, x12 y394 w180 h20 venableStartup Checked%autostart% gtoggleAutorun, Run at Startup
 
 RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 noLoginPrompt := regval = 00000000
@@ -1092,13 +1085,13 @@ toggleNoLogin:
 	noLoginPrompt := regval = 00000000
 	try{
 		if(noLoginPrompt = 1){
-			noLoginPrompt = 0
 			RegDelete, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
+			noLoginPrompt = 0
 			msgbox Login prompt enabled again (why?). This will take effect after a reboot.
 		}
 		else{
-			noLoginPrompt = 1
 			RegWrite, REG_DWORD, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities , 00000000
+			noLoginPrompt = 1
 			msgbox Login prompt disabled. This will take effect after a reboot.
 		}
 		exitapp
@@ -1107,145 +1100,39 @@ toggleNoLogin:
 		try{
 			IniWrite, 1, taskViewEnhancerSettings.ini, temp, toggleNoLogin
 			runNewAdminInstance()
-			RunAs
-			;ExitApp
+		}
+		Catch{
+			GuiControl, , noLoginPrompt , % noLoginPrompt
 		}
 	}
-	GuiControl, , noLoginPrompt , % noLoginPrompt
 return
 
-AutostartChange:
-	If (IsAutorunEnabled()){
-		if(fileexist(LinkFile)){
-			FileDelete, %LinkFile%
-		}
-		toggleAutorun()
-		autostart = 0
-	}
-	else if(fileexist(LinkFile)){
-		FileDelete, %LinkFile%
-		autostart = 0
-	}
-	else{
+runNewAdminInstance(){
+	FileCopy, %A_ScriptFullPath%, %A_Temp%\%A_ScriptName%, 1
+	RunWait, *RunAs %A_Temp%\%A_ScriptName%
+	FileDelete, %A_Temp%\%A_ScriptName%
+}
+
+toggleAutorun(){
+	RegRead, startupcmd, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer
+	autostart := startupcmd != ""
+
+	if (!autostart){
+		path := """" A_ScriptFullPath """"
 		if(!A_IsCompiled){
 			uiaPath := A_AhkPath
 			if (!InStr(A_AhkPath, "_UIA.exe")) {
 				uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
 			}
-			FileCreateShortcut, %uiapath% , %LinkFile%,,% """" A_ScriptFullPath """",,%A_ScriptDir%\icons\tray.ico
+			if(FileExist(uiaPath)){
+				path := """" uiaPath """ """ A_ScriptFullPath """"
+			}
 		}
-		msgbox, 4,,Do you want faster Autostart? (requires Admin)
-		IfMsgBox, Yes
-			toggleAutorun()
-		IfMsgBox, No
-			FileCreateShortcut, %A_ScriptFullPath%, %LinkFile%
-		autostart = 1
+		RegWrite, REG_SZ, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer, %path%
 	}
-return
-
-toggleAutorun(){
-	IniRead, scriptPath, taskViewEnhancerSettings.ini, temp, toggleAutorun
-	IniWrite, 0, taskViewEnhancerSettings.ini, temp, toggleAutorun
-	taskName = TaskViewEnhancer
-	try{
-		if(IsAutorunEnabled()){
-			DisableAutorun(taskName)
-		}
-		else{
-			EnableAutorun(taskName, scriptPath)
-		}
-		exitapp
+	else{
+		RegDelete, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer
 	}
-	Catch{
-		try{
-			IniWrite, %A_ScriptFullPath%, taskViewEnhancerSettings.ini, temp, toggleAutorun
-			runNewAdminInstance()
-			;ExitApp
-		}
-		catch{
-			LinkFile=%A_Startup%\%A_ScriptName%
-			autostart := IsAutorunEnabled() || fileexist(LinkFile)
-			GuiControl, , enableStartup , % autostart
-		}
-	}
-}
-
-IsAutorunEnabled()
-{
-	taskName = TaskViewEnhancer
-	Try{
-		objService := ComObjCreate("Schedule.Service") 
-		objService.Connect()
-		objFolder := objService.GetFolder("\")
-		objTask := objFolder.GetTask(taskName)
-		return objTask.Name != ""
-	}
-	catch{
-		return 0
-	}
-}
-
-EnableAutorun(taskName, path)
-{
-	if(IsAutorunEnabled())
-		return
-	
-	;https://learn.microsoft.com/en-us/windows/win32/api/taskschd/ne-taskschd-task_trigger_type2
-	TriggerType = 9   ; trigger on logon. 
-	ActionTypeExec = 0  ; specifies an executable action. 
-	TaskCreateOrUpdate = 6 
-	Task_Runlevel_Highest = 1 
-
-	objService := ComObjCreate("Schedule.Service") 
-	objService.Connect() 
-
-	objFolder := objService.GetFolder("\") 
-	objTaskDefinition := objService.NewTask(0) 
-
-	if(A_IsCompiled){
-		;start as admin
-		principal := objTaskDefinition.Principal 
-		principal.LogonType := 1    ; Set the logon type to TASK_LOGON_PASSWORD 
-		principal.RunLevel := Task_Runlevel_Highest  ; Tasks will be run with the highest privileges. 
-	}
-
-	colTasks := objTaskDefinition.Triggers 
-	objTrigger := colTasks.Create(TriggerType) 
-	colActions := objTaskDefinition.Actions 
-	objAction := colActions.Create(ActionTypeExec) 
-	objAction.ID := taskName
-
-	if(A_IsCompiled)
-		objAction.Path := """" path """"
-	else
-	{
-		uiaPath := A_AhkPath
-		if (!InStr(A_AhkPath, "_UIA.exe")) {
-			uiaPath := RegExReplace(A_AhkPath, "\.exe", "U" (32 << A_Is64bitOS) "_UIA.exe")
-		}
-		objAction.Path := """" uiaPath """"
-		objAction.Arguments := """" path """"
-	}
-	objAction.WorkingDirectory := tempDir
-	objInfo := objTaskDefinition.RegistrationInfo 
-	objInfo.Author := taskName 
-	objInfo.Description := "Run " taskName " through task scheduler for elevated privileges." 
-	objSettings := objTaskDefinition.Settings 
-	objSettings.Enabled := True 
-	objSettings.Hidden := False 
-	objSettings.StartWhenAvailable := True 
-	objSettings.ExecutionTimeLimit := "PT0S"
-	objSettings.DisallowStartIfOnBatteries := False
-	objSettings.StopIfGoingOnBatteries := False
-	objFolder.RegisterTaskDefinition(taskName, objTaskDefinition, TaskCreateOrUpdate , "", "", 3 ) 
-}
-
-DisableAutorun(taskName)
-{
-	objService := ComObjCreate("Schedule.Service") 
-	objService.Connect()
-	objFolder := objService.GetFolder("\")
-	objFolder.DeleteTask(taskName, 0)
 }
 
 resetSettings:
@@ -1293,12 +1180,6 @@ getAnyInput(timeoutMs := 0){
     
 }
 
-runNewAdminInstance(){
-	FileCopy, %A_ScriptFullPath%, %A_Temp%\%A_ScriptName%, 1
-	RunWait, *RunAs %A_Temp%\%A_ScriptName%
-	FileDelete, %A_Temp%\%A_ScriptName%
-}
-
 reset:
 	FileDelete, taskViewEnhancerSettings.ini
 
@@ -1307,14 +1188,10 @@ reset:
 		RegDelete, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 	}
 
-	If (IsAutorunEnabled()){
-		if(fileexist(LinkFile)){
-			FileDelete, %LinkFile%
-		}
+	RegRead, startupcmd, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer
+	autostart := startupcmd != ""
+	If (autostart){
 		toggleAutorun()
-	}
-	else if(fileexist(LinkFile)){
-		FileDelete, %LinkFile%
 	}
 	Reload
 return
@@ -1382,7 +1259,6 @@ if(!ErrorLevel){
 	IniWrite, % inbox, taskViewEnhancerSettings.ini, resize_calibration, program%insertPos%border
 }
 return
-
 
 rescalquit:
 tooltip
