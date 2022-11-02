@@ -316,8 +316,10 @@ taskInput:
 			if (key != "Esc" && key != "Enter" && key != "Tab") {
 				;open search
 				send #s
+				Input, inq, T0.1
 				WinWaitActive %search%,,1
 				send {%key%}
+				send, % inq
 			}
 		}
 	}
