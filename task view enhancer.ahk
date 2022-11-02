@@ -307,21 +307,10 @@ taskInput:
 			}
 		}
 		else if (WinActive(taskView)){ 
-<<<<<<< HEAD
 			;open search
 			send #s 
 			sleep 1
 			send {%key%}
-=======
-			if (key != "Esc" && key != "Enter" && key != "Tab") {
-				;open search
-				send #s
-				Input, inq, T0.1
-				WinWaitActive %search%,,1
-				send {%key%}
-				send, % inq
-			}
->>>>>>> 851cc34def810a48edc5b9207691dbba57b23a68
 		}
 	}
 	movedOrResized = 0
