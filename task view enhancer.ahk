@@ -187,16 +187,17 @@ movedOrResized = 0
 
 IniRead, program1, taskViewEnhancerSettings.ini, resize_calibration, program1
 if(program1 = "ERROR"){
+	sysget, b, 33
 	IniWrite, chrome.exe, taskViewEnhancerSettings.ini, resize_calibration, program1
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program1border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program1border
 	IniWrite, firefox.exe, taskViewEnhancerSettings.ini, resize_calibration, program2
-	IniWrite, 6, taskViewEnhancerSettings.ini, resize_calibration, program2border
+	IniWrite, % b-3, taskViewEnhancerSettings.ini, resize_calibration, program2border
 	IniWrite, msedge.exe, taskViewEnhancerSettings.ini, resize_calibration, program3
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program3border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program3border
 	IniWrite, Explorer.EXE, taskViewEnhancerSettings.ini, resize_calibration, program4
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program4border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program4border
 	IniWrite, ApplicationFrameHost.exe, taskViewEnhancerSettings.ini, resize_calibration, program5
-	IniWrite, 9, taskViewEnhancerSettings.ini, resize_calibration, program5border
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program5border
 }
 
 IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
