@@ -357,12 +357,12 @@ moveWindow:
 				if WinActive(search){
 					send {esc}
 				}
-				send {%moveHK%}
+				WinActivate, ahk_id %window%
 			}
 			break
 		}
 		else if(GetKeyState(moveHK, "P") = 0 && !touchOrPen || touchOrPen && GetKeyState(moveHKmodifier, "P") = 0){
-			WinActivate, ahk_id %window%
+			send {%moveHK%}
 			Hotkey, *$Shift, off
 			return
 		}
@@ -1216,17 +1216,30 @@ folderUp(path){
 }
 
 resize_calibrate:
-tooltip, select a window to calibrate resize edges for (esc to cancel)
-Hotkey, LButton, rescal
-hotkey, esc, rescalquit
-Hotkey, LButton, on
-hotkey, esc, on
-return
+Gui, rescal:new
+Gui -caption +toolwindow +AlwaysOnTop
+gui show, , rescal
+WinSet, Transparent, 1, rescal
 
-rescal:
+CoordMode, mouse, screen
+
+loop{
+	tooltip, select a window to calibrate resize edges for`n(esc to cancel)
+	MouseGetPos, x, y
+	WinMove, rescal, , x-20, y-20, 40, 40
+	if(GetKeyState("LButton")){
+		break
+	}
+	if(GetKeyState("Escape")){
+		tooltip
+		gui rescal:hide
+		return
+	}
+	sleep, % loopsleep
+}
+
+gui rescal:hide
 tooltip
-Hotkey, LButton, off
-hotkey, esc, off
 MouseGetPos, x, y, win
 WinGet, program, ProcessName , ahk_id %win%
 SysGet, resizeborderW, 33
@@ -1258,10 +1271,4 @@ if(!ErrorLevel){
 	IniWrite, % program, taskViewEnhancerSettings.ini, resize_calibration, program%insertPos%
 	IniWrite, % inbox, taskViewEnhancerSettings.ini, resize_calibration, program%insertPos%border
 }
-return
-
-rescalquit:
-tooltip
-Hotkey, LButton, off
-hotkey, esc, off
 return
