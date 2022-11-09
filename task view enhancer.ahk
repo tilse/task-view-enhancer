@@ -1305,32 +1305,52 @@ folderUp(path){
 }
 
 resize_calibrate:
-Gui, rescal:new
+CoordMode, mouse, Screen
+;get monitor bounds automatically
+minX := 0
+maxX := 0
+minY := 0
+maxY := 0
+SysGet, MonitorCount, MonitorCount
+Loop, %MonitorCount%
+{
+	SysGet, mon%A_Index%, Monitor, %A_Index%
+	minX := Min(minX, mon%A_Index%Left)
+	maxX := Max(maxX, mon%A_Index%Right)
+	minY := Min(minY, mon%A_Index%Top)
+	maxY := Max(maxY, mon%A_Index%Bottom)
+}
+maxW:=maxX-minX
+maxH:=maxY-minY
+
+gui rescal:new
 Gui -caption +toolwindow +AlwaysOnTop
-gui show, , rescal
+gui, add, button, x0 y0 w%maxW% h%maxH% gcontinue_calibration
+gui show,x%minX% y%minY% w%maxW% h%maxH% , rescal
 WinSet, Transparent, 1, rescal
 
-CoordMode, mouse, screen
-
 curChange(32515)
+keyBefore := A_PriorKey
+KeyWait, % keyBefore
+clicked = 0
 loop{
 	tooltip, select a window to calibrate resize edges for`n(esc to cancel)
-	MouseGetPos, x, y
-	WinMove, rescal, , x-20, y-20, 40, 40
-	if(GetKeyState("LButton")){
+	if(A_PriorKey != keyBefore || GetKeyState(keyBefore) || clicked = 1){
+		ErrorLevel := 0
+		key := A_PriorKey
 		break
-	}
-	if(GetKeyState("Escape")){
-		tooltip
-		gui rescal:hide
-		curRevert()
-		return
 	}
 	sleep, % loopsleep
 }
-
+gui rescal:destroy
 curRevert()
-gui rescal:hide
+tooltip
+return
+
+continue_calibration:
+clicked = 1
+gui rescal:destroy
+curRevert()
 tooltip
 
 MouseGetPos, x, y, win
