@@ -14,7 +14,7 @@ The goal of this script is to make the Windows key behave like the Super key in 
 This Script works similarly to AltDrag, so here are some features in this script compared to AltDrag.<br>
 - Resizing is much smoother (no noticable difference to dragging from the window corner)
 - Resize snapping to screen borders AND other programs + automatic fullscreen
-- When moving windows to the side, the windows snap assist appears / no gaps here
+- windows snap assist can be utilized (experimental)
 - A few less features like always on top (I recommend PowerToys for that)
 - Should work with any monitor layout / High DPI / whatever out of the box
 - Dragging Windows from task view is possible
