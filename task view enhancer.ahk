@@ -193,6 +193,8 @@ if(program1 = "ERROR"){
 	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program4border
 	IniWrite, ApplicationFrameHost.exe, taskViewEnhancerSettings.ini, resize_calibration, program5
 	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program5border
+	IniWrite, notepad.exe, taskViewEnhancerSettings.ini, resize_calibration, program6
+	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program6border
 }
 
 IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
@@ -658,6 +660,18 @@ resizeWindow:
 		SysGet, mon%A_Index%, Monitor, %A_Index%
 	}
 
+	WinGet,Windows,List
+	Loop,%Windows%
+	{
+		this_id := "ahk_id " . Windows%A_Index%
+		WinGetPos, winX, winY, winW, winH, %this_id%
+
+		win%A_Index%Left := winX
+		win%A_Index%Top := winY
+		win%A_Index%Right := winX+winW
+		win%A_Index%Bottom := winY+winH
+	}
+
 	;check if the opposite edge is in snapping distance 
 	;for automatic fullscreening when the window has reached the size of the work area
 	sX := winX1 +bwh*(RD+RU-LU-LD) +winWidth1*(LU+LD)
@@ -698,12 +712,13 @@ resizeWindow:
 
 	WinGet, program, ProcessName , %moveWin%
 	loop{
-		IniRead, program_match, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
-		if(program_match = "ERROR"){
+		IniRead, program%A_index%, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
+		if(program%A_index% = "ERROR"){
 			break
 		}
-		IniRead, program_border, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%border
-		if(program_match = program){
+		IniRead, program%A_index%border, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%border
+		if(program%A_index% = program){
+			program_border := program%A_index%border
 			Loop, % MonitorCount
 			{
 				;offset work area for snap checks so it snaps without the resize border
@@ -711,6 +726,14 @@ resizeWindow:
 				mon%A_Index%workRight	+= program_border
 				;mon%A_Index%workTop	-= program_border
 				mon%A_Index%workBottom 	+= program_border
+			}
+			Loop, % Windows
+			{
+				;offset work area for snap checks so it snaps without the resize border
+				win%A_Index%Left 	+= program_border
+				win%A_Index%Right	-= program_border
+				win%A_Index%Top		+= program_border
+				;win%A_Index%Bottom -= program_border
 			}
 		}
 	}
@@ -730,6 +753,8 @@ resizeWindow:
 		canMaximize = 1
 	}
 
+	WinGet, thisWin_id, ID, %moveWin%
+
 	Loop{
 		MouseGetPos, px2, py2
 		diffX := px2-px1
@@ -743,11 +768,11 @@ resizeWindow:
 			}
 		}
 
+		snap := ""
 		if(snapping = 1){
 			;resize snapping to work area
 			sX := winX1 + diffX + winWidth1*(RD+RU)
 			sY := winY1 + diffY + winHeight1*(RD+LD)
-			snap := ""
 			Loop, % MonitorCount{
 				if(sX >= mon%A_Index%Left && sX <= mon%A_Index%Right && sY >= mon%A_Index%Top && sY <= mon%A_Index%Bottom ){ ;current monitor check
 					if (sX - borderwidth <= mon%A_Index%workLeft){
@@ -769,8 +794,72 @@ resizeWindow:
 					break
 				}
 			}
+			;snapping to other windows
+			if(snap != "RU" && snap != "RD" && snap != "LU" && snap != "LD"){
+				loop, % Windows{
+					if(winX1 != win%A_Index%Left || winY1 != win%A_Index%Top || winHeight1 != win%A_Index%Top-win%A_Index%Bottom || winWidth1 != win%A_Index%Right-win%A_Index%Left){
+						if (abs(sX - win%A_Index%Right) <= bwh && (LD || LU)){
+							if(snap!="L" && snap!="R"){
+								snap := "L" snap
+								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
+								offset := 0
+								loop{
+									if(program%A_Index% = "ERROR"){
+										break
+									}
+									if(program%a_index% = program){
+										offset := program%A_Index%border
+									}
+								}
+								edgeX := win%A_Index%Right -offset
+							}
+						}
+						else if (abs(sX - win%A_Index%Left) <= bwh && (RD || RU)){
+							if(snap!="L" && snap!="R"){
+								snap := "R" snap
+								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
+								offset := 0
+								loop{
+									if(program%A_Index% = "ERROR"){
+										break
+									}
+									if(program%a_index% = program){
+										offset := program%A_Index%border
+									}
+								}
+								edgeX := win%A_Index%Left +offset
+							}
+						}
+						else if(abs(sY - win%A_Index%Bottom) <= bwh && (RU || LU)){
+							if(snap!="U" && snap!="D"){
+								snap := snap "U"
+								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
+								offset := 0
+								loop{
+									if(program%A_Index% = "ERROR"){
+										break
+									}
+									if(program%a_index% = program){
+										offset := program%A_Index%border
+									}
+								}
+								edgeY := win%A_Index%Bottom -offset
+							}
+						}
+						else if(abs(sY - win%A_Index%Top) <= bwh && (LD || RD)){
+							if(snap!="U" && snap!="D"){
+								snap := snap "D"
+								edgeY := win%A_Index%Top
+							}
+						}
+						if(snap = "RU" || snap = "RD" || snap = "LU" || snap = "LD"){
+							break
+						}
+					}
+				}
+			}
 		}
-		
+
 		switch snap
 		{
 		case "L":
@@ -1223,6 +1312,7 @@ WinSet, Transparent, 1, rescal
 
 CoordMode, mouse, screen
 
+curChange(32515)
 loop{
 	tooltip, select a window to calibrate resize edges for`n(esc to cancel)
 	MouseGetPos, x, y
@@ -1233,13 +1323,16 @@ loop{
 	if(GetKeyState("Escape")){
 		tooltip
 		gui rescal:hide
+		curRevert()
 		return
 	}
 	sleep, % loopsleep
 }
 
+curRevert()
 gui rescal:hide
 tooltip
+
 MouseGetPos, x, y, win
 WinGet, program, ProcessName , ahk_id %win%
 SysGet, resizeborderW, 33
