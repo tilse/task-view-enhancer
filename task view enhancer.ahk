@@ -1004,7 +1004,7 @@ resizeWindow:
 		case "D":
 			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1 + diffY*(RU+LU), 						winWidth1 +diffX*(-LU-LD+RU+RD), 								(winHeight1 -diffY)*(RU+LU) +(edgeY_-winY1)*(RD+LD)
 		case "LD":
-			WinMove, %moveWin%, , LD ? edgeX : winX1 +diffX*(LD+LU), 	winY1 + diffY*(RU+LU), 						winWidth1 +(LD = 1 ? -(edgeX_-winX1) : diffX*(-LU+RU+RD)), 		LD = 1 ? edgeY_-winY1 : winHeight1 +diffY*(-RU-LU+RD)
+			WinMove, %moveWin%, , LD ? edgeX_ : winX1 +diffX*(LD+LU), 	winY1 + diffY*(RU+LU), 						winWidth1 +(LD = 1 ? -(edgeX_-winX1) : diffX*(-LU+RU+RD)), 		LD = 1 ? edgeY_-winY1 : winHeight1 +diffY*(-RU-LU+RD)
 		case "RD":
 			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1 + diffY*(RU+LU), 						RD = 1 ? edgeX_-winX1 : winWidth1 +diffX, 						RD = 0 ? winHeight1 +diffY*(-RU-LU+LD) : edgeY_-winY1
 		case "LU":
