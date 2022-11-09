@@ -72,6 +72,8 @@ IniRead, snapping, taskViewEnhancerSettings.ini, settings, snapping, 1
 IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
 IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, maximize
 IniRead, enableSearch, taskViewEnhancerSettings.ini, settings, enableSearch, 1
+IniRead, winkeysnap, taskViewEnhancerSettings.ini, settings, winkeysnap, 0
+IniRead, realtimeresize, taskViewEnhancerSettings.ini, settings, realtimeresize, 1
 
 RegRead, startupcmd, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer
 autostart := startupcmd != ""
@@ -311,7 +313,7 @@ taskInput:
 		else if (WinActive(taskView)){ 
 			;open search
 			send #s 
-			sleep 1
+			sleep 10
 			send {%key%}
 		}
 	}
@@ -379,9 +381,6 @@ moveWindow:
 		SysGet, mon%A_Index%, Monitor, %A_Index%
 	}
 
-	WinGet, winMax1, MinMax, A
-	WinGetPos, winX1, winY1, winWidth1, winHeight1, A
-
 	tempcur := 32646
 	curChange(tempcur)
 
@@ -394,6 +393,31 @@ moveWindow:
 		}
 		sleep %loopsleep%
 	}
+
+	WinGet, winMax1, MinMax, A
+	WinGetPos, winX1, winY1, winWidth1, winHeight1, A
+
+	program_border := 0
+	WinGet, program, ProcessName , %moveWin%
+	loop{
+		IniRead, program%A_index%, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
+		if(program%A_index% = "ERROR"){
+			break
+		}
+		IniRead, program%A_index%border, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%border
+		if(program%A_index% = program){
+			program_border := program%A_index%border
+			Loop, % MonitorCount
+			{
+				;offset work area for snap checks so it snaps without the resize border
+				mon%A_Index%workLeft 	-= program_border
+				mon%A_Index%workRight	+= program_border
+				;mon%A_Index%workTop	-= program_border
+				mon%A_Index%workBottom 	+= program_border
+			}
+		}
+	}
+
 	if(resetWinPos){
 		WinRestore, %moveWin%
 		WinGetPos, winX1, winY1, winWidth1, winHeight1, A
@@ -414,7 +438,7 @@ moveWindow:
 			}
 		}
 		WinRestore, %moveWin%
-		WinGetPos, , , winWidth1, winHeight1, A
+		WinGetPos, winX1, winY1, winWidth1, winHeight1, A
 		winX1 := px2 - mxr / winWidthFull * winWidth1
 		winY1 := py2 - myr / winHeightFull * winHeight1
 	}
@@ -427,6 +451,7 @@ moveWindow:
 		if(snapping = 1){
 			Loop, % MonitorCount{
 				if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
+					currentMon := A_Index
 					if (px2 - borderwidth <= mon%A_Index%Left){
 						snap := "L"
 					}
@@ -442,9 +467,47 @@ moveWindow:
 					break
 				}
 			}
-		
-			if(snap!=snapLast){
-				if(WinActive(snapAssist) = 1){
+
+			if(snap!=snapLast && !winkeysnap){
+				WinRestore, %moveWin%
+				switch snap
+				{
+					case "L":
+						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)
+					case "R":
+						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)
+					case "U":
+						if((snapLast="RU" || snapLast="LU") = 0){
+							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2+5
+						}
+						WinMaximize, %moveWin%
+					case "D":
+						if(bottomBehavior = "maximize"){
+							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 -5
+							WinMaximize, %moveWin%
+						}
+						else if(bottomBehavior = "minimize"){
+							WinMove, %moveWin%, , winX1, winY1, winWidth1, winHeight1
+							if(winMax1 = 1){
+								WinMaximize, %moveWin%
+							}
+							WinMinimize, %moveWin%
+						}
+					case "LD": 
+						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop+(mon%currentMon%workBottom-mon%currentMon%workTop)/2, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+					case "RD": 
+						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2, mon%currentMon%workTop+(mon%currentMon%workBottom-mon%currentMon%workTop)/2, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+					case "LU": 
+						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+					case "RU": 
+						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+					Default:
+						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1
+				}
+			}
+
+			if(snap!=snapLast && winkeysnap){
+				if(WinActive(snapAssist) && snap != "L" && snap = "R"){
 					send {esc}
 				}
 				if(GetKeyState("Shift", "P") = 1){
@@ -452,96 +515,97 @@ moveWindow:
 				}
 				switch snap
 				{
-				case "L":
-					if(snapLast="LU"){
-						send {Blind}#{Down}
-					}
-					else if(snapLast="LD"){
-						send {Blind}#{Up}
-					}
-					else{
-						WinMove, %moveWin%, , px2 , py2 - winHeight1 / 2 + 1
-						send {Blind}#{Left}
-					}
-				case "R":
-					if(snapLast="RU"){
-						send {Blind}#{Down}
-					}
-					else if(snapLast="RD"){
-						send {Blind}#{Up}
-					}
-					else{
-						WinMove, %moveWin%, , px2 - winWidth1 , py2 - winHeight1 / 2 + 1
-						send {Blind}#{Right}
-					}
-				case "U":
-					if((snapLast="RU" || snapLast="LU") = 0){
-						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2+5
-					}
-					WinMaximize, %moveWin%
-				case "D":
-					if(bottomBehavior = "maximize"){
-						WinRestore, %moveWin%
-						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 -5
-						WinMaximize, %moveWin%
-					}
-					else if(bottomBehavior = "minimize"){
-						WinRestore, %moveWin%
-						WinMove, A, , winX1, winY1, winWidth1, winHeight1
-						if(winMax1 = 1){
-							WinMaximize, %moveWin%
+					case "L":
+						if(snapLast="LU"){
+							send {Blind}#{Down}
 						}
-						WinMinimize, %moveWin%
-					}
-				case "LD": 
-					if(snapLast != "L"){
-						WinRestore, %moveWin%
-						WinRestore, %moveWin%
-						WinActivate, %moveWin%
-						WinMove, %moveWin%, , px2 , py2 - winHeight1
-						send {Blind}#{Left}
-						sleep 50
-					}
-					send {Blind}#{down}
-				case "RD": 
-					if(snapLast != "R"){
-						WinRestore, %moveWin%
-						WinRestore, %moveWin%
-						WinActivate, %moveWin%
-						WinMove, %moveWin%, , px2 - winWidth1, py2 - winHeight1
-						send {Blind}#{Right}
-						sleep 50
-					}
-					send {Blind}#{down}
-				case "LU": 
-					if(snapLast != "L"){
-						if(snapLast="U"){
+						else if(snapLast="LD"){
+							send {Blind}#{Up}
+						}
+						else{
+							WinMove, %moveWin%, , px2 , py2 - winHeight1 / 2 + 1
 							send {Blind}#{Left}
 						}
-						WinRestore, %moveWin%
-						WinRestore, %moveWin%
-						WinActivate, %moveWin%
-						WinMove, %moveWin%, , px2 , py2 
-						send {Blind}#{Left}
-					}
-					send {Blind}#{up}
-				case "RU": 
-					if(snapLast != "R"){
-						if(snapLast="U"){
+					case "R":
+						if(snapLast="RU"){
+							send {Blind}#{Down}
+						}
+						else if(snapLast="RD"){
+							send {Blind}#{Up}
+						}
+						else{
+							WinMove, %moveWin%, , px2 - winWidth1 , py2 - winHeight1 / 2 + 1
 							send {Blind}#{Right}
 						}
+					case "U":
+						if((snapLast="RU" || snapLast="LU") = 0){
+							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2+5
+						}
+						WinMaximize, %moveWin%
+					case "D":
+						if(bottomBehavior = "maximize"){
+							WinRestore, %moveWin%
+							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 -5
+							WinMaximize, %moveWin%
+						}
+						else if(bottomBehavior = "minimize"){
+							WinRestore, %moveWin%
+							WinMove, % moveWin, , winX1, winY1, winWidth1, winHeight1
+							if(winMax1 = 1){
+								WinMaximize, %moveWin%
+							}
+							WinMinimize, %moveWin%
+						}
+					case "LD": 
+						if(snapLast != "L"){
+							WinRestore, %moveWin%
+							WinRestore, %moveWin%
+							WinActivate, %moveWin%
+							WinMove, %moveWin%, , px2 , py2 - winHeight1
+							send {Blind}#{Left}
+							sleep 50
+						}
+						send {Blind}#{down}
+					case "RD": 
+						if(snapLast != "R"){
+							WinRestore, %moveWin%
+							WinRestore, %moveWin%
+							WinActivate, %moveWin%
+							WinMove, %moveWin%, , px2 - winWidth1, py2 - winHeight1
+							send {Blind}#{Right}
+							sleep 50
+						}
+						send {Blind}#{down}
+					case "LU": 
+						if(snapLast != "L"){
+							if(snapLast="U"){
+								send {Blind}#{Left}
+							}
+							WinRestore, %moveWin%
+							WinRestore, %moveWin%
+							WinActivate, %moveWin%
+							WinMove, %moveWin%, , px2 , py2 
+							send {Blind}#{Left}
+							}
+						send {Blind}#{up}
+					case "RU": 
+						if(snapLast != "R"){
+							if(snapLast="U"){
+								send {Blind}#{Right}
+							}
+							WinRestore, %moveWin%
+							WinRestore, %moveWin%
+							WinActivate, %moveWin%
+							WinMove, %moveWin%, , px2 - winWidth1, py2
+							send {Blind}#{Right}
+							}
+						send {Blind}#{up}
+					Default:
 						WinRestore, %moveWin%
 						WinRestore, %moveWin%
-						WinActivate, %moveWin%
-						WinMove, %moveWin%, , px2 - winWidth1, py2
-						send {Blind}#{Right}
-					}
-					send {Blind}#{up}
-				Default:
-					WinRestore, %moveWin%
-					WinRestore, %moveWin%
-					WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1
+						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1
 				}
+				
 			}
 			snapLast := snap
 
@@ -619,7 +683,6 @@ resizeWindow:
 		}
 		Sleep, %loopsleep%
 	}
-	
 	
 	;wait for window
 	Loop 20{
@@ -710,6 +773,7 @@ resizeWindow:
 		mon%A_Index%Bottom 	+= borderwidth*(RD+LD-RU-LU)
 	}
 
+	program_border := 0
 	WinGet, program, ProcessName , %moveWin%
 	loop{
 		IniRead, program%A_index%, taskViewEnhancerSettings.ini, resize_calibration, program%A_index%
@@ -749,8 +813,41 @@ resizeWindow:
 				break
 			}
 		}
-		WinRestore, %moveWin%
+		if(realtimeresize){
+			WinRestore, %moveWin%
+		}
 		canMaximize = 1
+	}
+
+	if(!realtimeresize){
+		ogWin := moveWin
+		moveWin := "preview"
+		borderdiff := program_border - 2
+		winX1 += borderdiff
+		winWidth1 -= 2* borderdiff
+		winHeight1 -= borderdiff
+
+		gui preview:new
+		gui color, white
+		Gui +toolwindow +AlwaysOnTop -SysMenu
+		gui, show, x%winX1% y%winY1% w%winWidth1% h%winHeight1% , preview
+		WinSet, Transparent, 150, preview
+		Loop, % MonitorCount
+		{
+			;offset work area for snap checks so it snaps without the resize border
+			mon%A_Index%workLeft 	-= -borderdiff
+			mon%A_Index%workRight	+= -borderdiff
+			;mon%A_Index%workTop	-= -borderdiff
+			mon%A_Index%workBottom 	+= -borderdiff
+		}
+		Loop, % Windows
+		{
+			;offset work area for snap checks so it snaps without the resize border
+			win%A_Index%Left 	+= -borderdiff
+			win%A_Index%Right	-= -borderdiff
+			win%A_Index%Top		+= -borderdiff
+			;win%A_Index%Bottom -= -borderdiff
+		}
 	}
 
 	WinGet, thisWin_id, ID, %moveWin%
@@ -887,6 +984,38 @@ resizeWindow:
 		}
 		sleep %loopsleep%
 	}
+
+	if(!realtimeresize){
+		moveWin := ogWin
+		edgeX_ := edgeX + borderdiff*(-(snap="L"||snap="LU"||snap="LD")+(snap="R"||snap="RU"||snap="RD"))
+		edgeY_ := edgeY + borderdiff*(snap="LD"||snap="D"||snap="RD")
+		winX1 -= borderdiff
+		winWidth1 += 2* borderdiff
+		winHeight1 += borderdiff
+		WinRestore, %moveWin%
+		switch snap
+		{
+		case "L":
+			WinMove, %moveWin%, , winX1*(RU+RD) +edgeX_*(LU+LD), 		winY1 + diffY*(RU+LU), 						winWidth1 +diffX*(RD+RU) -(edgeX_-winX1)*(LU+LD), 				winHeight1 +diffY*(-RU-LU+RD+LD)
+		case "R":
+			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1 + diffY*(RU+LU), 						(winWidth1 -diffX)*(LU+LD) +(edgeX_-winX1)*(RD+RU), 				winHeight1 +diffY*(-RU-LU+RD+LD)
+		case "U":
+			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1*(LD+RD) +edgeY_*(RU+LU), 				winWidth1 +diffX*(-LU-LD+RU+RD), 								winHeight1 -(edgeY_-winY1)*(RU+LU) +diffY*(RD+LD)
+		case "D":
+			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1 + diffY*(RU+LU), 						winWidth1 +diffX*(-LU-LD+RU+RD), 								(winHeight1 -diffY)*(RU+LU) +(edgeY_-winY1)*(RD+LD)
+		case "LD":
+			WinMove, %moveWin%, , LD ? edgeX : winX1 +diffX*(LD+LU), 	winY1 + diffY*(RU+LU), 						winWidth1 +(LD = 1 ? -(edgeX_-winX1) : diffX*(-LU+RU+RD)), 		LD = 1 ? edgeY_-winY1 : winHeight1 +diffY*(-RU-LU+RD)
+		case "RD":
+			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1 + diffY*(RU+LU), 						RD = 1 ? edgeX_-winX1 : winWidth1 +diffX, 						RD = 0 ? winHeight1 +diffY*(-RU-LU+LD) : edgeY_-winY1
+		case "LU":
+			WinMove, %moveWin%, , LU ? edgeX_ : winX1 +diffX*(LD+LU), 	LU = 1 ? edgeY_ : winY1 + diffY*(RU+LU), 	winWidth1 +(LU = 0 ? diffX*(-LD+RU+RD) : -(edgeX_-winx1)), 		winHeight1 +(LU = 0 ? diffY*(-RU+RD+LD) : (winY1-edgeY))
+		case "RU":
+			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				RU = 1 ? edgeY_ : winY1 + diffY*(RU+LU), 	RU = 1 ? edgeX_-winX1 : winWidth1 +diffX*(-LU-LD+RD), 			winHeight1 +(RU = 0 ? diffY*(-LU+RD+LD) : -(edgeY_-winY1))
+		Default:
+			WinMove, %moveWin%, , winX1 +diffX*(LD+LU), 				winY1 + diffY*(RU+LU), 						winWidth1 +diffX*(-LU-LD+RU+RD), 								winHeight1 +diffY*(-RU-LU+RD+LD)
+		}
+		gui preview:hide
+	}
 	
 	if(canMaximize = 1){
 		switch snap
@@ -1002,7 +1131,7 @@ Gui, Add, ComboBox, x192 y169 w110 h20 vRHK r4 , %resizeHK%||LButton|RButton|MBu
 Gui, Add, Button, x312 y169 w50 h20 vbut5 gkget5, Input
 
 
-Gui, Add, GroupBox, x2 y209 w470 h180 , Other Settings
+Gui, Add, GroupBox, x2 y209 w470 h240 , Other Settings
 
 Gui, Add, Text, x12 y239 w170 h20 , Type in task view to search:
 Gui, Add, CheckBox, x192 y237 w100 h20 venableSearch Checked%enableSearch%, Enabled
@@ -1023,26 +1152,32 @@ Gui, Add, Text, x12 y359 w170 h20 , Bottom screen edge behavior:
 ddlDefault := bottomBehavior = "none" ? 1 : bottomBehavior = "minimize" ? 2 : 3
 Gui, Add, DDL, x192 y357 w160 h10 vbotedge r3 Choose%ddlDefault%, none|minimize|maximize
 
+Gui, Add, Text, x12 y389 w170 h20 , Stability/Performance:
+Gui, Add, CheckBox, x192 y387 w250 h30 vwinkeysnap Checked%winkeysnap%, Use Win-key combos to snap windows when moving (less stable)
+Gui, Add, CheckBox, x192 y417 w250 h20 vrealtimeresize Checked%realtimeresize%, Real-time resizing (can be performance-heavy)
 
-Gui, Add, CheckBox, x12 y394 w180 h20 venableStartup Checked%autostart% gtoggleAutorun, Run at Startup
+
+Gui, Add, CheckBox, x12 y454 w180 h20 venableStartup Checked%autostart% gtoggleAutorun, Run at Startup
 
 RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 noLoginPrompt := regval = 00000000
-Gui, Add, CheckBox, x12 y414 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gtoggleNoLogin, Disable Login Prompt (Task View)
+Gui, Add, CheckBox, x12 y474 w180 h20 vnoLoginPrompt Checked%noLoginPrompt% gtoggleNoLogin, Disable Login Prompt (Task View)
 
 
-Gui, Add, Button, x238 y399 w60 h30 gSetHKs default, OK
-Gui, Add, Button, x303 y399 w80 h30 gapply , Apply
-Gui, Add, Button, x388 y399 w80 h30 gresetSettings, Reset
+Gui, Add, Button, x238 y459 w60 h30 gSetHKs default, OK
+Gui, Add, Button, x303 y459 w80 h30 gapply , Apply
+Gui, Add, Button, x388 y459 w80 h30 gresetSettings, Reset
 
 gui Font, s20
 Gui, Add, Text, x500 y205 w170 h80 , Hi :3
-Gui, Add, Text, x100 y450 w300 h80 , Yahaha, you found me!
+Gui, Add, Text, x100 y510 w300 h80 , Yahaha, you found me!
 ; Generated using SmartGUI Creator 4.0
 
-middleX:=A_ScreenWidth/2-240
-middleY:=A_ScreenHeight/2-205
-Gui, Show, x%middleX% y%middleY% h440 w480
+wid:=480
+hei:=500
+middleX:=A_ScreenWidth/2-wid/2
+middleY:=A_ScreenHeight/2-hei/2
+Gui, Show, x%middleX% y%middleY% h%hei% w%wid%
 
 IniWrite, 0, taskViewEnhancerSettings.ini, temp, keepOpen
 Return
@@ -1127,6 +1262,8 @@ SetHKs:
     GuiControlGet, borderwidth,, borderBuddy
     GuiControlGet, bottomBehavior,, botedge
     GuiControlGet, enableSearch,, enableSearch
+    GuiControlGet, winkeysnap,, winkeysnap
+    GuiControlGet, realtimeresize,, realtimeresize
 
 	if(moveHKmodifier_=""||resizeHKmodifier_=""){
 		throwCustom("Hotkey modifiers need to be set.")
@@ -1160,6 +1297,8 @@ SetHKs:
 	IniWrite, %borderwidth%, taskViewEnhancerSettings.ini, settings, borderwidth
 	IniWrite, %bottomBehavior%, taskViewEnhancerSettings.ini, settings, bottomBehavior
 	IniWrite, %enableSearch%, taskViewEnhancerSettings.ini, settings, enableSearch
+	IniWrite, %winkeysnap%, taskViewEnhancerSettings.ini, settings, winkeysnap
+	IniWrite, %realtimeresize%, taskViewEnhancerSettings.ini, settings, realtimeresize
 
 	Reload
 Return
@@ -1345,7 +1484,7 @@ loop{
 gui rescal:destroy
 curRevert()
 tooltip
-return
+		return
 
 continue_calibration:
 clicked = 1
