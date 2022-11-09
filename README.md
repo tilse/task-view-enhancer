@@ -13,7 +13,7 @@ The goal of this script is to make the Windows key behave like the Super key in 
 
 This Script works similarly to AltDrag, so here are some features in this script compared to AltDrag.<br>
 - Resizing is much smoother (no noticable difference to dragging from the window corner)
-- Resize snapping (also in AltDrag) + automatic fullscreen
+- Resize snapping to screen borders AND other programs + automatic fullscreen
 - When moving windows to the side, the windows snap assist appears / no gaps here
 - A few less features like always on top (I recommend PowerToys for that)
 - Should work with any monitor layout / High DPI / whatever out of the box
@@ -39,8 +39,8 @@ Windows + left click -> drag windows <br>
 
 Windows + right click -> resize windows<br>
 ->picks the closest window corner to resize from<br>
-->snaps to your work area (doesn't include your task bar)
-->maximizes the window when the window snapped in all corners
+->snaps to your work area (doesn't include your task bar) and other windows
+->maximizes the window when the window snapped in all screen corners
 
 Holding shift limits movement to one axis (press shift **after** starting a function)
 
