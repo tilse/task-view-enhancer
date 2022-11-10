@@ -1499,10 +1499,12 @@ loop{
 	}
 	sleep, % loopsleep
 }
-gui rescal:destroy
-curRevert()
-tooltip
-		return
+if(key != "LButton" || clicked){
+	gui rescal:destroy
+	curRevert()
+	tooltip
+	return
+}
 
 continue_calibration:
 clicked = 1
