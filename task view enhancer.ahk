@@ -174,9 +174,12 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	WinClose, ahk_pid %note2%
 	WinClose, ahk_pid %note1%
 	send {esc}
-	IniWrite, %taskView%, taskViewEnhancerSettings.ini, windowNames, taskView
-	IniWrite, %snapAssist%, taskViewEnhancerSettings.ini, windowNames, snapAssist
-	msgbox % "Done.`nDetected task view as """ taskView """`nand snap assist as """ snapAssist """."
+	msgbox,4,, % "Detected task view as """ taskView """`nand snap assist as """ snapAssist """.`nSave these names?"
+	IfMsgBox, Yes
+	{
+		IniWrite, %taskView%, taskViewEnhancerSettings.ini, windowNames, taskView
+		IniWrite, %snapAssist%, taskViewEnhancerSettings.ini, windowNames, snapAssist
+	}
 	SetTimer, taskInput, on
 }
 
