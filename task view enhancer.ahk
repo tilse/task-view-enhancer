@@ -135,7 +135,11 @@ e := "Unknown names for task view and snap assist.`nThe script will get these na
 getnames:
 if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	SetTimer, taskInput, off
-	msgbox % e
+	msgbox,1,, % e
+	IfMsgBox, Cancel
+	{
+		goto, skipgetnames
+	}
 	WinGetActiveTitle, OutputVar
 	run %A_WinDir%`\explorer.exe shell`:`:`:{3080F90E-D7AD-11D9-BD98-0000947B0257} ;this is a slower alternative to "send #{tab}", but more reliable
 	WinWaitNotActive %Outputvar%,, 2
@@ -182,6 +186,7 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 	}
 	SetTimer, taskInput, on
 }
+skipgetnames:
 
 movedOrResized = 0
 
@@ -1412,7 +1417,17 @@ getAnyInput(timeoutMs := 0){
 }
 
 reset:
-	FileDelete, taskViewEnhancerSettings.ini
+	msgbox,4,,Also delete resize calibration?
+	IfMsgBox, Yes
+	{
+		FileDelete, taskViewEnhancerSettings.ini
+	}
+	IfMsgBox, No
+	{
+		IniDelete, taskViewEnhancerSettings.ini, temp
+		IniDelete, taskViewEnhancerSettings.ini, settings
+		IniDelete, taskViewEnhancerSettings.ini, windowNames
+	}
 
 	RegRead, regVal, HKLM\SOFTWARE\Policies\Microsoft\Windows\System, UploadUserActivities
 	if(regval = 00000000){
