@@ -502,13 +502,13 @@ moveWindow:
 							WinMinimize, %moveWin%
 						}
 					case "LD": 
-						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop+(mon%currentMon%workBottom-mon%currentMon%workTop)/2, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+						WinMove, % moveWin, , mon%currentMon%workLeft, 																				mon%currentMon%workTop+(mon%currentMon%workBottom-mon%currentMon%workTop)/2 - program_border/2, (mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)/2 + program_border/2
 					case "RD": 
-						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2, mon%currentMon%workTop+(mon%currentMon%workBottom-mon%currentMon%workTop)/2, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2 - program_border, 		mon%currentMon%workTop+(mon%currentMon%workBottom-mon%currentMon%workTop)/2 - program_border/2, (mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)/2 + program_border/2
 					case "LU": 
-						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+						WinMove, % moveWin, , mon%currentMon%workLeft, 																				mon%currentMon%workTop, 																		(mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)/2 + program_border/2
 					case "RU": 
-						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)/2
+						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2 - program_border, 		mon%currentMon%workTop, 																		(mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)/2 + program_border/2
 					Default:
 						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1
 				}
