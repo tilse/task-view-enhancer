@@ -481,9 +481,9 @@ moveWindow:
 				switch snap
 				{
 					case "L":
-						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)
+						WinMove, % moveWin, , mon%currentMon%workLeft, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)
 					case "R":
-						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2, (mon%currentMon%workBottom-mon%currentMon%workTop)
+						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2 - program_border, mon%currentMon%workTop, (mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)
 					case "U":
 						if((snapLast="RU" || snapLast="LU") = 0){
 							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2+5
