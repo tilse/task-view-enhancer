@@ -304,7 +304,7 @@ taskInput:
 
 	ignored := ["Escape", "Enter", "Tab", "LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
 	
-	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0 || key = taskHK){
+	if(ErrorLevel != "Timeout" && (getIndex(ignored, key) = 0 || key = taskHK)){
 		if (key = taskHK) { 
 			if (WinActive(taskView)){
 				keywait, %taskHK%
@@ -1391,8 +1391,10 @@ getAnyInput(timeoutMs := 0){
 	;careful, touch presses don't get recognized in task view,
 	;but the input function is even worse because it NEVER recognizes them
 	keyBefore := A_PriorKey
+	if(keyBefore = ""){
+		return
+	}
 	KeyWait, % keyBefore
-	ErrorLevel := "Timeout"
 	if(timeoutMs != 0){
 		loop, % timeoutMs/30{
 			if(A_PriorKey != keyBefore || GetKeyState(keyBefore)){
@@ -1413,7 +1415,7 @@ getAnyInput(timeoutMs := 0){
 			sleep 30
 		}
 	}
-    
+	ErrorLevel := "Timeout"
 }
 
 reset:
