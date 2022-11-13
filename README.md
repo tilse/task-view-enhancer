@@ -68,7 +68,7 @@ https://www.autohotkey.com/
 
 To adjust some other settings after the initial startup, click the task tray icon.
 
-<img src="https://user-images.githubusercontent.com/59397795/199568200-9b0ea82a-61d0-4c5a-affc-c2855121dc1c.png" height="400">
+<img src="https://user-images.githubusercontent.com/59397795/201527057-b707a59e-5fb8-440a-bd32-eea5bada6ca2.png" height="400">
 
 <br>
 
