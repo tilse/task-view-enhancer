@@ -594,19 +594,19 @@ moveWindow:
 				case "LD": 
 					send {LWinDown}{Left}
 					sleep 10
-					send {Down}{LWinUp}
+					send {LWinDown}{Down}{LWinUp}
 				case "RD": 
 					send {LWinDown}{Right}
 					sleep 10
-					send {Down}{LWinUp}
+					send {LWinDown}{Down}{LWinUp}
 				case "LU": 
 					send {LWinDown}{Left}
 					sleep 10
-					send {Up}{LWinUp}
+					send {LWinDown}{Up}{LWinUp}
 				case "RU": 
 					send {LWinDown}{Right}
 					sleep 10
-					send {Up}{LWinUp}
+					send {LWinDown}{Up}{LWinUp}
 				Default:
 			}
 		}
