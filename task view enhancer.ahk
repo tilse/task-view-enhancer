@@ -476,7 +476,7 @@ moveWindow:
 				}
 			}
 
-			if(snap!=snapLast && !winkeysnap){
+			if(snap!=snapLast){
 				WinRestore, %moveWin%
 				switch snap
 				{
@@ -510,108 +510,7 @@ moveWindow:
 					case "RU": 
 						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2 - program_border, 		mon%currentMon%workTop, 																		(mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)/2 + program_border/2
 					Default:
-						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1
-				}
-			}
-
-			if(snap!=snapLast && winkeysnap){
-				if(WinActive(snapAssist) && snap != "L" && snap = "R"){
-					send {esc}
-				}
-				if(GetKeyState("Shift", "P") = 1){
-					send {ShiftUp}
-				}
-				switch snap
-				{
-					case "L":
-						if(snapLast="LU"){
-							send {Blind}#{Down}
-						}
-						else if(snapLast="LD"){
-							send {Blind}#{Up}
-						}
-						else{
-							WinMove, %moveWin%, , px2 , py2 - winHeight1 / 2 + 1
-							send {Blind}#{Left}
-						}
-					case "R":
-						if(snapLast="RU"){
-							send {Blind}#{Down}
-						}
-						else if(snapLast="RD"){
-							send {Blind}#{Up}
-						}
-						else{
-							WinMove, %moveWin%, , px2 - winWidth1 , py2 - winHeight1 / 2 + 1
-							send {Blind}#{Right}
-						}
-					case "U":
-						if((snapLast="RU" || snapLast="LU") = 0){
-							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2+5
-						}
-						WinMaximize, %moveWin%
-					case "D":
-						if(bottomBehavior = "maximize"){
-							WinRestore, %moveWin%
-							WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 -5
-							WinMaximize, %moveWin%
-						}
-						else if(bottomBehavior = "minimize"){
-							WinRestore, %moveWin%
-							WinMove, % moveWin, , winX1, winY1, winWidth1, winHeight1
-							if(winMax1 = 1){
-								WinMaximize, %moveWin%
-							}
-							WinMinimize, %moveWin%
-						}
-					case "LD": 
-						if(snapLast != "L"){
-							WinRestore, %moveWin%
-							WinRestore, %moveWin%
-							WinActivate, %moveWin%
-							WinMove, %moveWin%, , px2 , py2 - winHeight1
-							send {Blind}#{Left}
-							sleep 50
-						}
-						send {Blind}#{down}
-					case "RD": 
-						if(snapLast != "R"){
-							WinRestore, %moveWin%
-							WinRestore, %moveWin%
-							WinActivate, %moveWin%
-							WinMove, %moveWin%, , px2 - winWidth1, py2 - winHeight1
-							send {Blind}#{Right}
-							sleep 50
-						}
-						send {Blind}#{down}
-					case "LU": 
-						if(snapLast != "L"){
-							if(snapLast="U"){
-								send {Blind}#{Left}
-							}
-							WinRestore, %moveWin%
-							WinRestore, %moveWin%
-							WinActivate, %moveWin%
-							WinMove, %moveWin%, , px2 , py2 
-							send {Blind}#{Left}
-							}
-						send {Blind}#{up}
-					case "RU": 
-						if(snapLast != "R"){
-							if(snapLast="U"){
-								send {Blind}#{Right}
-							}
-							WinRestore, %moveWin%
-							WinRestore, %moveWin%
-							WinActivate, %moveWin%
-							WinMove, %moveWin%, , px2 - winWidth1, py2
-							send {Blind}#{Right}
-							}
-						send {Blind}#{up}
-					Default:
-						WinRestore, %moveWin%
-						WinRestore, %moveWin%
-						WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1
+						WinMove, %moveWin%, , winX1 + diffX, winY1 + diffY, winWidth1, winHeight1
 				}
 				
 			}
@@ -646,6 +545,73 @@ moveWindow:
 		sleep %loopsleep%
 	}
 
+	if(winkeysnap && snap != ""){
+		if(GetKeyState("LWin", "P") || GetKeyState("RWin", "P")){
+			WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1, winWidth1, winHeight1
+			if(GetKeyState("Shift", "P") = 1){
+				send {ShiftUp}
+			}
+			switch snap
+			{
+				case "L":
+					send {Blind}{Left}
+				case "R":
+					send {Blind}{Right}
+				case "U":
+				case "D":
+				case "LD": 
+					send {Blind}{Left}
+					sleep 10
+					send {Blind}{Down}
+				case "RD": 
+					send {Blind}{Right}
+					sleep 10
+					send {Blind}{Down}
+				case "LU": 
+					send {Blind}{Left}
+					sleep 10
+					send {Blind}{Up}
+				case "RU": 
+					send {Blind}{Right}
+					sleep 10
+					send {Blind}{Up}
+				Default:
+			}
+		}
+		else if(!GetKeyState(moveHKmodifier, "P")){
+			WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1, winWidth1, winHeight1
+			if(GetKeyState("Shift", "P") = 1){
+				send {ShiftUp}
+			}
+			switch snap
+			{
+				case "L":
+					send #{Left}
+				case "R":
+					send #{Right}
+				case "U":
+				case "D":
+				case "LD": 
+					send {LWinDown}{Left}
+					sleep 10
+					send {Down}{LWinUp}
+				case "RD": 
+					send {LWinDown}{Right}
+					sleep 10
+					send {Down}{LWinUp}
+				case "LU": 
+					send {LWinDown}{Left}
+					sleep 10
+					send {Up}{LWinUp}
+				case "RU": 
+					send {LWinDown}{Right}
+					sleep 10
+					send {Up}{LWinUp}
+				Default:
+			}
+		}
+	}
+
 	curRevert()
 	if(GetKeyState("Shift", "P") = 1){
 		Loop{
@@ -675,11 +641,14 @@ resizeWindow:
 	Loop{
 		MouseGetPos, px2, py2
 		if(abs(px2 - px1) >= activationDistance || abs(py2 - py1) >= activationDistance){
-			if (WinActive(taskView) || WinActive(snapAssist)){
+			if (WinActive(taskView)){
 				Hotkey, *$Shift, off
 				return
 			}
 			else {
+				if (WinActive(snapAssist)){
+					send {esc}
+				}
 				WinActivate, ahk_id %window%
 			}
 			break
@@ -839,7 +808,7 @@ resizeWindow:
 		gui color, white
 		Gui +toolwindow +AlwaysOnTop -SysMenu
 		gui, show, x%winX1% y%winY1% w%winWidth1% h%winHeight1% , preview
-		WinSet, Transparent, 150, preview
+		WinSet, Transparent, 100, preview
 		Loop, % MonitorCount
 		{
 			;offset work area for snap checks so it snaps without the resize border
@@ -856,6 +825,7 @@ resizeWindow:
 			win%A_Index%Top		+= -borderdiff
 			;win%A_Index%Bottom -= -borderdiff
 		}
+		WinSet, Transparent, 200, %ogWin%
 	}
 
 	WinGet, thisWin_id, ID, %moveWin%
@@ -995,6 +965,7 @@ resizeWindow:
 
 	if(!realtimeresize){
 		moveWin := ogWin
+		WinSet, Transparent, 255, %ogWin%
 		edgeX_ := edgeX + borderdiff*(-(snap="L"||snap="LU"||snap="LD")+(snap="R"||snap="RU"||snap="RD"))
 		edgeY_ := edgeY + borderdiff*(snap="LD"||snap="D"||snap="RD")
 		winX1 -= borderdiff
@@ -1372,7 +1343,7 @@ toggleAutorun(){
 }
 
 resetSettings:
-	msgbox, 4,, Are you sure you want to reset ALL your settings to default?
+	msgbox, 4,, Are you sure you want to reset your settings to default?
 	IfMsgBox, Yes
 		goto reset
 return
