@@ -72,7 +72,7 @@ IniRead, snapping, taskViewEnhancerSettings.ini, settings, snapping, 1
 IniRead, borderwidth, taskViewEnhancerSettings.ini, settings, borderwidth, 20
 IniRead, bottomBehavior, taskViewEnhancerSettings.ini, settings, bottomBehavior, maximize
 IniRead, enableSearch, taskViewEnhancerSettings.ini, settings, enableSearch, 1
-IniRead, winkeysnap, taskViewEnhancerSettings.ini, settings, winkeysnap, 0
+IniRead, winkeysnap, taskViewEnhancerSettings.ini, settings, winkeysnap, 1
 IniRead, realtimeresize, taskViewEnhancerSettings.ini, settings, realtimeresize, 1
 
 RegRead, startupcmd, HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run, Task View Enhancer
