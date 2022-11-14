@@ -544,6 +544,7 @@ moveWindow:
 	}
 
 	if(winkeysnap && snap != "" && snap != "U" && snap != "D"){
+		WinGetPos, xpre, ypre, wpre, hpre, %moveWin%
 		if(!GetKeyState("LWin", "P") && !GetKeyState("RWin", "P")){
 			send {LWinDown}
 		}
@@ -574,6 +575,11 @@ moveWindow:
 		}
 		if(!GetKeyState("LWin", "P") && !GetKeyState("RWin", "P")){
 			send {LWinUp}
+		}
+		SysGet, resizeborderW, 33
+		WinGetPos, xpost, ypost, wpost, hpost, %moveWin%
+		if(abs(xpost-xpre) + abs(ypost-ypre) + abs(wpost-wpre) + abs(hpost-hpre) > 4 * resizeborderW){
+			WinMove, %moveWin%, , xpre, ypre, wpre, hpre
 		}
 	}
 
