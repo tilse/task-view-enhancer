@@ -4,15 +4,32 @@
   <p align="center">
     Get the Linux experience on Windows in a single script!
     <br><br>
-    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.ahk">
-      <img src="https://user-images.githubusercontent.com/59397795/201730742-213072e5-7882-46ad-b037-83000120146d.png" alt="download ahk" style="width:130px;"/>
-    </a>
     <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.exe">
-      <img src="https://user-images.githubusercontent.com/59397795/201730657-a3b3c972-3cf7-4d21-b8e8-6cdf1076c032.png" alt="download exe" style="width:130px;"/>
+      <img src="https://user-images.githubusercontent.com/59397795/201736133-299ca540-4d6f-4ddc-9817-91cceee5f5fa.png" alt="download exe" style="width:150px;"/>
+    </a>
+    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.ahk">
+      <img src="https://user-images.githubusercontent.com/59397795/201736142-e82b854f-e7c9-47ee-830c-0d465174eca6.png" alt="download ahk" style="width:150px;"/>
     </a>
   </p>
 </p>
 
+<br>
+<br>
+
+## INSTALL
+
+This script is meant to be run with AutoHotkey.
+
+The executable is a demo as well as an install guide.
+
+Run the exe file to install AutoHotkey with UI Access to make the script work with elevated windows like task manager. (optional)
+
+If you want to get autohotkey directly from the source, download it here instead. (The script fetches an up to date version of it though)
+
+https://www.autohotkey.com/
+
+<br>
+<br>
 
 ## INTRO
 
@@ -36,6 +53,8 @@ The same goes for other .ahk scripts with windows key shortcut combos. (works be
 
 ## FEATURES
 
+<img src="https://user-images.githubusercontent.com/59397795/201737451-f95562a3-d664-4dd4-9f7f-c4d210a5a6a5.gif" height="300">
+
 Left Windows Key -> task view
 
 Start searching by typing in task view
@@ -52,21 +71,6 @@ Windows + right click -> resize windows<br>
 Holding shift limits movement to one axis (press shift **after** starting a function)
 
 A settings UI to disable any part of this
-
-<img src="https://user-images.githubusercontent.com/59397795/195693644-a84f8769-3b32-4df2-aad2-bcb648672495.gif" height="300">
-
-<br>
-<br>
-
-## INSTALL
-
-The executable also functions as an install guide.
-
-Run the exe file to install AutoHotkey with UI Access to make the script work with elevated windows like task manager. (optional)
-
-If you want to get autohotkey directly from the source, download it here instead. (The script fetches an up to date version of it though)
-
-https://www.autohotkey.com/
 
 <br>
 <br>
