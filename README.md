@@ -2,7 +2,7 @@
   <img src="https://github.com/tilse/task-view-enhancer/blob/main/icons/large_icon.png?raw=true" height="64">
   <h3 align="center">Task View Enhancer</h3>
   <p align="center">
-    Get the Linux Gnome experience on Windows in a single script!
+    Get the Gnome Shell experience on Windows in a single script!
     <br><br>
     <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.ahk">
       <img src="https://user-images.githubusercontent.com/59397795/201736133-299ca540-4d6f-4ddc-9817-91cceee5f5fa.png" alt="download exe" style="width:150px;"/>
