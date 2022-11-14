@@ -4,10 +4,10 @@
   <p align="center">
     Get the Linux experience on Windows in a single script!
     <br><br>
-    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.exe">
+    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.ahk">
       <img src="https://user-images.githubusercontent.com/59397795/201736133-299ca540-4d6f-4ddc-9817-91cceee5f5fa.png" alt="download exe" style="width:150px;"/>
     </a>
-    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.ahk">
+    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.exe">
       <img src="https://user-images.githubusercontent.com/59397795/201736142-e82b854f-e7c9-47ee-830c-0d465174eca6.png" alt="download ahk" style="width:150px;"/>
     </a>
   </p>
