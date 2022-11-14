@@ -1,11 +1,18 @@
-<p align="center">
+ <p align="center">
   <img src="https://raw.githubusercontent.com/tilse/task-view-enhancer/v1.1.3/icons/tray.ico" height="64">
   <h3 align="center">Task View Enhancer</h3>
-  <p align="center">Get the Linux experience on Windows in a single script!<p>
+  <p align="center">
+    Get the Linux experience on Windows in a single script!
+    <br><br>
+    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.ahk">
+      <img src="https://user-images.githubusercontent.com/59397795/201730742-213072e5-7882-46ad-b037-83000120146d.png" alt="download ahk" style="width:130px;"/>
+    </a>
+    <a href="https://github.com/tilse/task-view-enhancer/releases/latest/download/task.view.enhancer.exe">
+      <img src="https://user-images.githubusercontent.com/59397795/201730657-a3b3c972-3cf7-4d21-b8e8-6cdf1076c032.png" alt="download exe" style="width:130px;"/>
+    </a>
+  </p>
 </p>
 
-<br>
-<br>
 
 ## INTRO
 
