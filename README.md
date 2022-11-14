@@ -1,5 +1,5 @@
  <p align="center">
-  <img src="https://raw.githubusercontent.com/tilse/task-view-enhancer/v1.1.3/icons/tray.ico" height="64">
+  <img src="https://raw.githubusercontent.com/tilse/task-view-enhancer/main/icons/large_icon.ico" height="64">
   <h3 align="center">Task View Enhancer</h3>
   <p align="center">
     Get the Linux experience on Windows in a single script!

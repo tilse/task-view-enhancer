@@ -543,70 +543,37 @@ moveWindow:
 		sleep %loopsleep%
 	}
 
-	if(winkeysnap && snap != ""){
-		if(GetKeyState("LWin", "P") || GetKeyState("RWin", "P")){
-			WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1, winWidth1, winHeight1
-			if(GetKeyState("Shift", "P") = 1){
-				send {ShiftUp}
-			}
-			switch snap
-			{
-				case "L":
-					send {Blind}{Left}
-				case "R":
-					send {Blind}{Right}
-				case "U":
-				case "D":
-				case "LD": 
-					send {Blind}{Left}
-					sleep 10
-					send {Blind}{Down}
-				case "RD": 
-					send {Blind}{Right}
-					sleep 10
-					send {Blind}{Down}
-				case "LU": 
-					send {Blind}{Left}
-					sleep 10
-					send {Blind}{Up}
-				case "RU": 
-					send {Blind}{Right}
-					sleep 10
-					send {Blind}{Up}
-				Default:
-			}
+	if(winkeysnap && snap != "" && snap != "U" && snap != "D"){
+		if(!GetKeyState("LWin", "P") && !GetKeyState("RWin", "P")){
+			send {LWinDown}
 		}
-		else if(!GetKeyState(moveHKmodifier, "P")){
-			WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1, winWidth1, winHeight1
-			if(GetKeyState("Shift", "P") = 1){
-				send {ShiftUp}
-			}
-			switch snap
-			{
-				case "L":
-					send #{Left}
-				case "R":
-					send #{Right}
-				case "U":
-				case "D":
-				case "LD": 
-					send {LWinDown}{Left}
-					sleep 10
-					send {LWinDown}{Down}{LWinUp}
-				case "RD": 
-					send {LWinDown}{Right}
-					sleep 10
-					send {LWinDown}{Down}{LWinUp}
-				case "LU": 
-					send {LWinDown}{Left}
-					sleep 10
-					send {LWinDown}{Up}{LWinUp}
-				case "RU": 
-					send {LWinDown}{Right}
-					sleep 10
-					send {LWinDown}{Up}{LWinUp}
-				Default:
-			}
+		WinMove, %moveWin%, , px2 - winWidth1 / 2, py2 - winHeight1 / 2 + 1, winWidth1, winHeight1
+		switch snap
+		{
+			case "L":
+				send {Blind}{Left}
+			case "R":
+				send {Blind}{Right}
+			case "LD": 
+				send {Blind}{Left}
+				sleep 10
+				send {Blind}{Down}
+			case "RD": 
+				send {Blind}{Right}
+				sleep 10
+				send {Blind}{Down}
+			case "LU": 
+				send {Blind}{Left}
+				sleep 10
+				send {Blind}{Up}
+			case "RU": 
+				send {Blind}{Right}
+				sleep 10
+				send {Blind}{Up}
+			Default:
+		}
+		if(!GetKeyState("LWin", "P") && !GetKeyState("RWin", "P")){
+			send {LWinUp}
 		}
 	}
 
@@ -768,7 +735,7 @@ resizeWindow:
 			}
 			Loop, % Windows
 			{
-				;offset work area for snap checks so it snaps without the resize border
+				;offset area for snap checks so it snaps without the resize border
 				win%A_Index%Left 	+= program_border
 				win%A_Index%Right	-= program_border
 				win%A_Index%Top		+= program_border
@@ -817,7 +784,7 @@ resizeWindow:
 		}
 		Loop, % Windows
 		{
-			;offset work area for snap checks so it snaps without the resize border
+			;offset area for snap checks so it snaps without the resize border
 			win%A_Index%Left 	+= -borderdiff
 			win%A_Index%Right	-= -borderdiff
 			win%A_Index%Top		+= -borderdiff
