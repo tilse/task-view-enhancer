@@ -253,7 +253,7 @@ showTaskGuaranteed:
 	if(closeintent){
 		if(taskHK_ = "~LWin" || taskHK_ = "~RWin"){
 			if(WinActive(search)){
-				sleep 1
+				sleep 70
 				send {esc}
 			}
 		}
@@ -300,11 +300,9 @@ taskInput:
 	fromhk = 0
 
 	;wait for 1 key press
-	key := getAnyInput(10000) ;this function is at the bottom of the script
+	key := getSearch(10000)
 
-	ignored := ["Escape", "Enter", "Tab", "LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
-	
-	if(ErrorLevel != "Timeout" && (getIndex(ignored, key) = 0 || key = taskHK)){
+	if(ErrorLevel != "Timeout"){
 		if (key = taskHK) { 
 			if (WinActive(taskView)){
 				keywait, %taskHK%
@@ -318,11 +316,11 @@ taskInput:
 				goto showTaskGuaranteed
 			}
 		}
-		else if (WinActive(taskView)){ 
+		else if (WinActive(taskView)){
 			;open search
 			send #s 
-			sleep 10
-			send {%key%}
+			Input, inp, T0.5
+			send {%key%}%inp%
 		}
 	}
 	movedOrResized = 0
@@ -1355,6 +1353,33 @@ getIndex(haystack, needle) {
 		if (value = needle)
 			return index
 	return 0
+}
+
+getSearch(timeoutMs := 0){
+	;make sure the keyboard and mouse hooks are on
+	;careful, touch presses don't get recognized in task view,
+	;but the input function is even worse because it NEVER recognizes them
+	keyBefore := A_PriorKey
+	if(keyBefore = ""){
+		return
+	}
+	stopInput := ["Escape", "Tab", "LButton", "RButton", "MButton"]
+	dontCallSearch := ["Escape", "Tab", "LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
+	global taskHK
+	KeyWait, % keyBefore
+	if(timeoutMs != 0){
+		loop, % timeoutMs/30{
+			if(getIndex(stopInput, A_PriorKey) != 0){
+				break
+			}
+			if((A_PriorKey != keyBefore || GetKeyState(keyBefore)) && (getIndex(dontCallSearch,A_PriorKey) = 0 || A_PriorKey = taskHK)){
+				ErrorLevel := 0
+				return A_PriorKey
+			}
+			sleep 30
+		}
+	}
+	ErrorLevel := "Timeout"
 }
 
 getAnyInput(timeoutMs := 0){
