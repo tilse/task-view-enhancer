@@ -300,7 +300,7 @@ taskInput:
 	fromhk = 0
 
 	;wait for 1 key press
-	key := getAnyInput(3000) ;this function is at the bottom of the script
+	key := getAnyInput(10000) ;this function is at the bottom of the script
 
 	ignored := ["Escape", "Enter", "Tab", "LButton", "RButton", "MButton", "LControl", "RControl", "LAlt", "RAlt", "LShift", "RShift", "CapsLock", "NumLock", "PrintScreen", "Left", "Right", "Up", "Down", "AppsKey", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"]
 	
