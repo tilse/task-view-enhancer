@@ -207,14 +207,15 @@ if(program1 = "ERROR"){
 	IniWrite, % b, taskViewEnhancerSettings.ini, resize_calibration, program6border
 }
 
-IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
-if(keepOpen){
-	goto settings
-}
 ; these are here to stop waiting for input when in task view
 Hotkey, ~*$LButton, mousedown, off
 Hotkey, ~*$RButton, mousedown, off
 Hotkey, ~*$MButton, mousedown, off
+
+IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
+if(keepOpen){
+	goto settings
+}
 
 nothing:
 return
@@ -312,7 +313,7 @@ taskInput:
 	Hotkey, ~*$MButton, on
 	
 	;wait for 1 key press
-	Input, key, L1 V T3, {%taskHK%}{VK0E}{LWin}{RWin}{Home}{End}{PgUp}{PgDn}{Del}{Ins}{BS}{Enter}{Pause} ;excluded: {LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{CapsLock}{NumLock}{PrintScreen}{Left}{Right}{Up}{Down}{AppsKey}{F1}{F2}{F3}{F4}{F5}{F6}{F7}{F8}{F9}{F10}{F11}{F12}
+	Input, key, L1 V T3, {%taskHK%}{VK0E}{LWin}{RWin}{Home}{End}{PgUp}{PgDn}{Del}{Ins}{BS}{Enter}{Pause}{Esc} ;excluded: {LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{CapsLock}{NumLock}{PrintScreen}{Left}{Right}{Up}{Down}{AppsKey}{F1}{F2}{F3}{F4}{F5}{F6}{F7}{F8}{F9}{F10}{F11}{F12}
 	
 	Hotkey, ~*$LButton, off
 	Hotkey, ~*$RButton, off

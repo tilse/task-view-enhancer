@@ -20,7 +20,7 @@
 
 This script is meant to be run with AutoHotkey.
 
-The executable is a demo as well as an install guide.
+The executable is a demo (full feature except for that it doesn't work on windows with higher privileges) as well as an install guide.
 
 Run the exe file to install AutoHotkey with UI Access to make the script work with elevated windows like task manager. (optional)
 
@@ -85,7 +85,7 @@ To adjust some other settings after the initial startup, click the task tray ico
 
 <h3>Autostart</h3>
 
-Use the settings checkbox "Run at startup".
+You might get the idea to use task scheduler for whatever reason (i know there are a few), but for some reason it doesn't work correctly when it's being run that early, and thus requires being restarted anyway to work properly.
 
 <br>
 
