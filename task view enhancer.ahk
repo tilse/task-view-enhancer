@@ -211,8 +211,16 @@ IniRead, keepOpen, taskViewEnhancerSettings.ini, temp, keepOpen, 1
 if(keepOpen){
 	goto settings
 }
+; these are here to stop waiting for input when in task view
+Hotkey, ~*$LButton, mousedown, off
+Hotkey, ~*$RButton, mousedown, off
+Hotkey, ~*$MButton, mousedown, off
 
 nothing:
+return
+
+mousedown:
+	SendEvent, {Blind}{VK0E} ;unused virtual key
 return
 
 getKeyFromHotkey(hotkey){
@@ -299,10 +307,25 @@ taskInput:
 	}
 	fromhk = 0
 
+	Hotkey, ~*$LButton, on
+	Hotkey, ~*$RButton, on
+	Hotkey, ~*$MButton, on
+	
 	;wait for 1 key press
-	key := getSearch(10000)
+	Input, key, L1 V T3, {%taskHK%}{VK0E}{LWin}{RWin}{Home}{End}{PgUp}{PgDn}{Del}{Ins}{BS}{Enter}{Pause} ;excluded: {LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{CapsLock}{NumLock}{PrintScreen}{Left}{Right}{Up}{Down}{AppsKey}{F1}{F2}{F3}{F4}{F5}{F6}{F7}{F8}{F9}{F10}{F11}{F12}
+	
+	Hotkey, ~*$LButton, off
+	Hotkey, ~*$RButton, off
+	Hotkey, ~*$MButton, off
 
-	if(ErrorLevel != "Timeout"){
+	IfInString,ErrorLevel,EndKey:	;if endkey exists, convert to key
+	{
+		key := RegExReplace(ErrorLevel,"EndKey:","")
+	}
+
+	ignored := ["Escape", "Tab", "VK0E"]
+	
+	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0){
 		if (key = taskHK) { 
 			if (WinActive(taskView)){
 				keywait, %taskHK%
