@@ -410,6 +410,18 @@ moveWindow:
 		SysGet, mon%A_Index%work, MonitorWorkArea, %A_Index%
 		SysGet, mon%A_Index%, Monitor, %A_Index%
 	}
+	
+	WinGet,Windows,List
+	Loop,%Windows%
+	{
+		this_id := "ahk_id " . Windows%A_Index%
+		WinGetPos, winX, winY, winW, winH, %this_id%
+
+		win%A_Index%Left := winX
+		win%A_Index%Top := winY
+		win%A_Index%Right := winX+winW
+		win%A_Index%Bottom := winY+winH
+	}
 
 	tempcur := 32646
 	curChange(tempcur)
@@ -476,8 +488,15 @@ moveWindow:
 	Loop{
 		MouseGetPos, px2, py2
 
+		diffX := px2 - px1
+		diffY := py2 - py1
+
+		curWinX := winX1 + diffX
+		curWinY := winY1 + diffY
+
 		;window snapping
 		snap := ""
+		snap2 := ""
 		if(snapping = 1){
 			Loop, % MonitorCount{
 				if(px2 >= mon%A_Index%Left && px2 <= mon%A_Index%Right && py2 >= mon%A_Index%Top && py2 <= mon%A_Index%Bottom){ ;current monitor check
@@ -495,6 +514,108 @@ moveWindow:
 						snap := snap "D"
 					}
 					break
+				}
+			}
+
+			;snapping to other windows
+			if(snap = ""){
+				Loop, % MonitorCount{
+					if(snap2 = "RU" || snap2 = "RD" || snap2 = "LU" || snap2 = "LD"){
+						break
+					}
+					if (abs(curWinX +program_border - mon%A_Index%Left) <= bwh){
+						if(snap2!="L" && snap2!="R"){
+							snap2 := "L" snap2
+							edgeX := mon%A_Index%Left
+						}
+					}
+					else if (abs(curWinX+winWidth1 -program_border - mon%A_Index%Right) <= bwh){
+						if(snap2!="L" && snap2!="R"){
+							snap2 := "R" snap2
+							edgeX := mon%A_Index%Right
+						}
+					}
+					if(abs(curWinY - mon%A_Index%Top) <= bwh){
+						if(snap2!="U" && snap2!="D"){
+							snap2 := snap2 "U"
+							edgeY := mon%A_Index%Top
+						}
+					}
+					else if(abs(curWinY+winHeight1 -program_border - mon%A_Index%Bottom) <= bwh){
+						if(snap2!="U" && snap2!="D"){
+							snap2 := snap2 "D"
+							edgeY := mon%A_Index%Bottom
+						}
+					}
+				}
+
+				loop, % Windows{
+					;if not same window
+					if(snap2 = "RU" || snap2 = "RD" || snap2 = "LU" || snap2 = "LD"){
+						break
+					}
+					if(winX1 != win%A_Index%Left || winY1 != win%A_Index%Top || winHeight1 != win%A_Index%Top-win%A_Index%Bottom || winWidth1 != win%A_Index%Right-win%A_Index%Left){
+						if (abs(curWinX +program_border - win%A_Index%Right) <= bwh){
+							if(snap2!="L" && snap2!="R"){
+								snap2 := "L" snap2
+								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
+								offset := 0
+								loop, % Windows{
+									if(program%a_index% = program){
+										offset := program%A_Index%border
+									}
+								}
+								edgeX := win%A_Index%Right -offset
+							}
+						}
+						else if (abs(curWinX+winWidth1 -program_border - win%A_Index%Left) <= bwh){
+							if(snap2!="L" && snap2!="R"){
+								snap2 := "R" snap2
+								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
+								offset := 0
+								loop, % Windows{
+									if(program%a_index% = program){
+										offset := program%A_Index%border
+									}
+								}
+								edgeX := win%A_Index%Left +offset
+							}
+						}
+						else if(abs(curWinY - win%A_Index%Bottom) <= bwh){
+							if(snap2!="U" && snap2!="D"){
+								snap2 := snap2 "U"
+								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
+								offset := 0
+								loop, % Windows{
+									if(program%a_index% = program){
+										offset := program%A_Index%border
+									}
+								}
+								edgeY := win%A_Index%Bottom -offset
+							}
+						}
+						else if(abs(curWinY+winHeight1 -program_border - win%A_Index%Top) <= bwh){
+							if(snap2!="U" && snap2!="D"){
+								snap2 := snap2 "D"
+								edgeY := win%A_Index%Top
+							}
+						}
+					}
+				}
+
+				if(snap2 != ""){
+					WinRestore, %moveWin%
+					switch snap2
+					{
+						case "L": WinMove, %moveWin%, , edgeX-program_border, 			curWinY, winWidth1, winHeight1
+						case "R": WinMove, %moveWin%, , edgeX-winWidth1+program_border, curWinY, winWidth1, winHeight1
+						case "U": WinMove, %moveWin%, , curWinX, 						edgeY, winWidth1, winHeight1
+						case "D": WinMove, %moveWin%, , curWinX, 						edgeY-winHeight1+program_border, winWidth1, winHeight1
+						case "LD": WinMove, %moveWin%, , edgeX-program_border, 			edgeY-winHeight1+program_border, winWidth1, winHeight1
+						case "LU": WinMove, %moveWin%, , edgeX-program_border, 			edgeY, winWidth1, winHeight1
+						case "RD": WinMove, %moveWin%, , edgeX-winWidth1+program_border,edgeY-winHeight1+program_border, winWidth1, winHeight1
+						case "RU": WinMove, %moveWin%, , edgeX-winWidth1+program_border,edgeY, winWidth1, winHeight1
+					}
 				}
 			}
 
@@ -532,7 +653,7 @@ moveWindow:
 					case "RU": 
 						WinMove, % moveWin, , mon%currentMon%workLeft+(mon%currentMon%workRight-mon%currentMon%workLeft)/2 - program_border, 		mon%currentMon%workTop, 																		(mon%currentMon%workRight-mon%currentMon%workLeft)/2 + program_border, (mon%currentMon%workBottom-mon%currentMon%workTop)/2 + program_border/2
 					Default:
-						WinMove, %moveWin%, , winX1 + diffX, winY1 + diffY, winWidth1, winHeight1
+						WinMove, %moveWin%, , curWinX, curWinY, winWidth1, winHeight1
 				}
 				
 			}
@@ -547,9 +668,7 @@ moveWindow:
 			}
 		}
 		
-		if(snap = ""){
-			diffX := px2 - px1
-			diffY := py2 - py1
+		if(snap = "" && snap2 = ""){
 			if(GetKeyState("Shift", "P") = 1){
 				if (abs(diffX) > abs(diffY)){
 					diffY := 0
@@ -558,7 +677,7 @@ moveWindow:
 					diffX := 0
 				}
 			}
-			WinMove, %moveWin%, , winX1 + diffX, winY1 + diffY, winWidth1, winHeight1
+			WinMove, %moveWin%, , curWinX, curWinY, winWidth1, winHeight1
 		}
 
 		if(GetKeyState(moveHK, "P") = 0 && !touchOrPen || touchOrPen && GetKeyState(moveHKmodifier, "P") = 0){
@@ -873,10 +992,7 @@ resizeWindow:
 								snap := "L" snap
 								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
 								offset := 0
-								loop{
-									if(program%A_Index% = "ERROR"){
-										break
-									}
+								loop, % Windows{
 									if(program%a_index% = program){
 										offset := program%A_Index%border
 									}
@@ -889,10 +1005,7 @@ resizeWindow:
 								snap := "R" snap
 								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
 								offset := 0
-								loop{
-									if(program%A_Index% = "ERROR"){
-										break
-									}
+								loop, % Windows{
 									if(program%a_index% = program){
 										offset := program%A_Index%border
 									}
@@ -905,10 +1018,7 @@ resizeWindow:
 								snap := snap "U"
 								WinGet, program, ProcessName, % "ahk_id " Windows%A_Index%
 								offset := 0
-								loop{
-									if(program%A_Index% = "ERROR"){
-										break
-									}
+								loop, % Windows{
 									if(program%a_index% = program){
 										offset := program%A_Index%border
 									}
