@@ -29,7 +29,7 @@ if (!InStr(A_AhkPath, "_UIA.exe")) {
 
 	IniRead, noInstall, taskViewEnhancerSettings.ini, temp, noInstall, 0
 	if(!FileExist(newPath) && !noInstall){
-		msgbox,1,,No installation of AutoHotkey with UI Access detected. Install it? If you  just want to try this out, select Cancel.
+		msgbox,1,,No installation of AutoHotkey with UI Access detected. Install it?`nIf you  just want to try this out, select Cancel.`nThis is only useful for the .ahk version.
 		IfMsgBox, Cancel
 		{
 			msgbox, 4,, Do you want to stop being asked? You can get this warning back by doing a FULL RESET (in the tray menu).
@@ -58,7 +58,7 @@ if (!InStr(A_AhkPath, "_UIA.exe")) {
 cancelInstall:
 
 ;----------------------------------CONFIG------------------------------------
-IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 1
+IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 0
 IniRead, taskHK_, taskViewEnhancerSettings.ini, settings, taskHK, ~LWin
 IniRead, moveHKOn, taskViewEnhancerSettings.ini, settings, moveHKOn, 1
 IniRead, moveHKmodifier_, taskViewEnhancerSettings.ini, settings, moveHKmodifier, LWin
@@ -1184,7 +1184,7 @@ Gui, settings:new
 Gui, Add, GroupBox, x2 y67 w470 h68 
 Gui, Add, GroupBox, x2 y19 w470 h180 , Hotkeys (made for LWin/RWin, others might not work well)
 
-Gui, Add, Text, x12 y49 w150 h20 , Remap Task View:
+Gui, Add, Text, x12 y49 w150 h20 , Remap Task View (experimental):
 Gui, Add, ComboBox, x192 y49 w110 h20 vTHK r4, %taskHK_%||~LWin|~RWin|LAlt & Tab
 Gui, Add, Button, x312 y49 w50 h20 vbut1 gkget1, Input
 Gui, Add, CheckBox, x372 y49 w90 h20 venableTHK Checked%taskHKOn%, Enabled
