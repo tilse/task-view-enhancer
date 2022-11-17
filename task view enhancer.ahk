@@ -519,33 +519,28 @@ moveWindow:
 
 			;snapping to other windows
 			if(snap = ""){
-				Loop, % MonitorCount{
-					if(snap2 = "RU" || snap2 = "RD" || snap2 = "LU" || snap2 = "LD"){
-						break
+				if (abs(curWinX +program_border - mon%currentMon%Left) <= bwh){
+					if(snap2!="L" && snap2!="R"){
+						snap2 := "L" snap2
+						edgeX := mon%currentMon%Left
 					}
-					if (abs(curWinX +program_border - mon%A_Index%Left) <= bwh){
-						if(snap2!="L" && snap2!="R"){
-							snap2 := "L" snap2
-							edgeX := mon%A_Index%Left
-						}
+				}
+				else if (abs(curWinX+winWidth1 -program_border - mon%currentMon%Right) <= bwh){
+					if(snap2!="L" && snap2!="R"){
+						snap2 := "R" snap2
+						edgeX := mon%currentMon%Right
 					}
-					else if (abs(curWinX+winWidth1 -program_border - mon%A_Index%Right) <= bwh){
-						if(snap2!="L" && snap2!="R"){
-							snap2 := "R" snap2
-							edgeX := mon%A_Index%Right
-						}
+				}
+				if(abs(curWinY - mon%currentMon%Top) <= bwh){
+					if(snap2!="U" && snap2!="D"){
+						snap2 := snap2 "U"
+						edgeY := mon%currentMon%Top
 					}
-					if(abs(curWinY - mon%A_Index%Top) <= bwh){
-						if(snap2!="U" && snap2!="D"){
-							snap2 := snap2 "U"
-							edgeY := mon%A_Index%Top
-						}
-					}
-					else if(abs(curWinY+winHeight1 -program_border - mon%A_Index%Bottom) <= bwh){
-						if(snap2!="U" && snap2!="D"){
-							snap2 := snap2 "D"
-							edgeY := mon%A_Index%Bottom
-						}
+				}
+				else if(abs(curWinY+winHeight1 -program_border - mon%currentMon%Bottom) <= bwh){
+					if(snap2!="U" && snap2!="D"){
+						snap2 := snap2 "D"
+						edgeY := mon%currentMon%Bottom
 					}
 				}
 
