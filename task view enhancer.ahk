@@ -150,12 +150,12 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 		}
 		sleep %loopsleep%
 	}
-	WinGetActiveTitle, taskView
+	WinGetActiveTitle, taskViewTemp
 	send {esc}
 
 	Loop 100{
 		WinGetActiveTitle, window
-		if(window != taskView){
+		if(window != taskViewTemp){
 			break
 		}
 		sleep %loopsleep%
@@ -174,15 +174,17 @@ if(taskView = "ERROR" || taskView = "" || snapAssist = ""){
 		}
 		sleep %loopsleep%
 	}
-	WinGetActiveTitle, snapAssist
+	WinGetActiveTitle, snapAssistTemp
 	WinClose, ahk_pid %note2%
 	WinClose, ahk_pid %note1%
 	send {esc}
-	msgbox,4,, % "Detected task view as """ taskView """`nand snap assist as """ snapAssist """.`nSave these names?"
+	msgbox,4,, % "Detected task view as """ taskViewTemp """`nand snap assist as """ snapAssistTemp """.`nSave these names?"
 	IfMsgBox, Yes
 	{
-		IniWrite, %taskView%, taskViewEnhancerSettings.ini, windowNames, taskView
-		IniWrite, %snapAssist%, taskViewEnhancerSettings.ini, windowNames, snapAssist
+		taskView := taskViewTemp
+		IniWrite, %taskViewTemp%, taskViewEnhancerSettings.ini, windowNames, taskView
+		snapAssist := snapAssistTemp
+		IniWrite, %snapAssistTemp%, taskViewEnhancerSettings.ini, windowNames, snapAssist
 	}
 	SetTimer, taskInput, on
 }
