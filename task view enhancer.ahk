@@ -668,10 +668,10 @@ moveWindow:
 		if(snap = "" && snap2 = ""){
 			if(GetKeyState("Shift", "P") = 1){
 				if (abs(diffX) > abs(diffY)){
-					diffY := 0
+					curWinY := winY1
 				}
 				else {
-					diffX := 0
+					curWinX := winX1
 				}
 			}
 			WinMove, %moveWin%, , curWinX, curWinY, winWidth1, winHeight1
