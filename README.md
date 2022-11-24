@@ -1,5 +1,5 @@
  <p align="center">
-  <img src="https://github.com/tilse/task-view-enhancer/blob/main/icons/large_icon.png?raw=true" height="64">
+  <img src="https://user-images.githubusercontent.com/59397795/203731650-c4492aad-cead-4b13-816c-405085260916.png" height="64">
   <h3 align="center">Task View Enhancer</h3>
   <p align="center">
     Get the Linux window manager experience on Windows in a single script!
