@@ -20,6 +20,8 @@
 
 This script is meant to be run with AutoHotkey.
 
+If you want a taskbar icon for the AutoHotkey script, you need to download the source code zip folder which contains the icons. Place the icons folder in the same directory as the script.
+
 The executable is a demo (full feature except for that it doesn't work on windows with higher privileges) as well as an install guide.
 
 Run the exe file to install AutoHotkey with UI Access to make the script work with elevated windows like task manager. (optional)
