@@ -58,6 +58,8 @@ if (!InStr(A_AhkPath, "_UIA.exe")) {
 cancelInstall:
 
 ;----------------------------------CONFIG------------------------------------
+DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr") ;for different monitor scaling
+
 IniRead, taskHKOn, taskViewEnhancerSettings.ini, settings, taskHKOn, 0
 IniRead, taskHK_, taskViewEnhancerSettings.ini, settings, taskHK, ~LWin
 IniRead, moveHKOn, taskViewEnhancerSettings.ini, settings, moveHKOn, 1
