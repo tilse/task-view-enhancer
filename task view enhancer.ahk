@@ -243,7 +243,6 @@ showTask:
 		closeintent = 0
 	}
 
-	SetTimer, taskInput, off
 	if(!(moveHKmodifier = taskHK) || !(resizeHKmodifier = taskHK)){
 		movedOrResized = 0
 	}
@@ -255,7 +254,6 @@ showTaskGuaranteed:
 	;cancel if a different key got pressed while win was held down
 	if (A_PriorKey != taskHK && instr(taskHK_, "~") || movedOrResized) {
 		movedOrResized = 0
-		SetTimer, taskInput, on
 		return
 	}
 
@@ -274,7 +272,6 @@ showTaskGuaranteed:
 			send {Esc}
 		}
 		movedOrResized = 0
-		SetTimer, taskInput, on
 		return
 	}
 
@@ -290,7 +287,6 @@ showTaskGuaranteed:
 		WinWaitActive %taskView%,,3
 		if(ErrorLevel){
 			movedOrResized = 0
-			SetTimer, taskInput, on
 			taskView := "ERROR"
 			e := "Timeout occurred. Getting Names for Task View and Snap Assist again."
 			goto getnames
@@ -330,7 +326,7 @@ taskInput:
 
 	ignored := ["Escape", "Tab", "VK0E"]
 	
-	if(ErrorLevel != "Timeout" && getIndex(ignored, key) = 0){
+	if(ErrorLevel != "Timeout" && ErrorLevel != "NewInput" && getIndex(ignored, key) = 0){
 		if (key = taskHK) { 
 			if (WinActive(taskView)){
 				keywait, %taskHK%
@@ -352,7 +348,6 @@ taskInput:
 		}
 	}
 	movedOrResized = 0
-	SetTimer, taskInput, on
 Return
 
 moveWindow:
